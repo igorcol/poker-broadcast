@@ -12,13 +12,18 @@
 
 body {
   margin: 0;
-  padding: 24px;
-  background: var(--bg);
+  /* Sem fundo por padrão: o Browser Source do OBS só compõe sobre o vídeo se houver alpha real */
+  background: transparent;
   color: var(--text);
   font: 14px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 
-.console { max-width: 720px; }
+.console {
+  min-height: 100vh;
+  padding: 24px;
+  background: var(--bg);
+}
+.console > * { max-width: 720px; }
 .console__header { display: flex; align-items: baseline; gap: 12px; }
 .console__header h1 { font-size: 16px; margin: 0 0 16px; letter-spacing: 0.1em; }
 
@@ -119,3 +124,28 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .actions__undo { margin-left: auto; }
 
 .setup__blinds select { width: 14ch; }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  padding: 32px;
+  /* Não captura clique: overlay é camada de leitura, nunca de interação */
+  pointer-events: none;
+  color: #fff;
+  font: 18px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+
+.overlay__line { margin-bottom: 6px; }
+.overlay__muted { color: #b8c0d0; }
+
+/* Só aparece quando o engine cai — silencioso enquanto tudo funciona */
+.overlay__offline {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  padding: 6px 12px;
+  background: rgba(200, 40, 40, 0.85);
+  font-size: 14px;
+  text-shadow: none;
+}
