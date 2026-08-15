@@ -8,7 +8,8 @@ import type { ServerMessage } from "@poker-broadcast/core"
  * Descartavel
  */
 
-// npm start --workspace @poker-broadcast/engine
+// 1. npm start --workspace @poker-broadcast/engine
+// 2. npm run probe --workspace @poker-broadcast/engine
 
 const socket = new WebSocket("ws://localhost:4000")
 
