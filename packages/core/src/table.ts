@@ -43,8 +43,16 @@ export interface HandConfig {
   readonly bigBlind: number
 }
 
+const BOARD_SIZE: Partial<Record<Phase, number>> = { flop: 3, turn: 4, river: 5 }
+
 export function seatToAct(state: GameState): Seat | null {
   return state.toAct === null ? null : (state.seats[state.toAct] ?? null)
+}
+
+/** Quantas comunitárias faltam na fase atual. Zero quando a fase não vira carta. */
+export function pendingBoardCards(state: GameState): number {
+  const expected = BOARD_SIZE[state.phase] ?? state.board.length
+  return Math.max(0, expected - state.board.length)
 }
 
 export function nextActive(seats: readonly Seat[], from: number): number | null {

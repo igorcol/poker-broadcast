@@ -1,6 +1,7 @@
 import type { Card } from "./card.ts"
 import {
   nextActive,
+  pendingBoardCards,
   roundIsComplete,
   seatToAct,
   type GameState,
@@ -44,8 +45,6 @@ const NEXT_PHASE: Record<Phase, Phase> = {
   showdown: "complete",
   complete: "complete",
 }
-
-const BOARD_SIZE: Partial<Record<Phase, number>> = { flop: 3, turn: 4, river: 5 }
 
 function commit(seat: Seat, amount: number): Seat {
   const paid = Math.min(amount, seat.stack)
@@ -201,8 +200,7 @@ export function applyAction(state: GameState, action: Action): ActionResult {
 }
 
 export function dealBoard(state: GameState, cards: readonly Card[]): ActionResult {
-  const expected = BOARD_SIZE[state.phase]
-  if (expected === undefined || state.board.length + cards.length !== expected) {
+  if (cards.length === 0 || cards.length !== pendingBoardCards(state)) {
     return { ok: false, error: "wrong-board-size" }
   }
   return { ok: true, state: { ...state, board: [...state.board, ...cards] } }

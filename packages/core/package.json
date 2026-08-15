@@ -6,6 +6,7 @@
   "main": "src/index.ts",
   "scripts": {
     "test": "node --experimental-strip-types --test src/Tests/*.test.ts",
+    "harness": "node --experimental-strip-types scripts/harness.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
