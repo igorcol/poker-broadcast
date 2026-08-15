@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -32,9 +33,20 @@ def similarity(glyph: np.ndarray, template: np.ndarray) -> float:
     return float(np.logical_and(glyph_mask, template_mask).sum()) / union
 
 
-def rank_candidates(glyph: np.ndarray, templates: dict[str, np.ndarray]) -> list[tuple[str, float]]:
+SUIT_COLORS = {"s": "black", "c": "black", "h": "red", "d": "red"}
+
+
+def rank_candidates(
+    glyph: np.ndarray,
+    templates: dict[str, np.ndarray],
+    allowed: set[str] | None = None,
+) -> list[tuple[str, float]]:
     """Candidatos ordenados — a margem entre 1º e 2º é o que diz se a decisão é sólida."""
-    scores = [(name, similarity(glyph, template)) for name, template in templates.items()]
+    scores = [
+        (name, similarity(glyph, template))
+        for name, template in templates.items()
+        if allowed is None or name in allowed
+    ]
     return sorted(scores, key=lambda item: item[1], reverse=True)
 
 
@@ -52,12 +64,15 @@ def main() -> int:
     parser.add_argument("glyphs", type=Path, help="diretório com os glifos extraídos")
     parser.add_argument("--templates", type=Path, default=Path("data/templates"))
     args = parser.parse_args()
-
+    
     ranks = load_templates(args.templates, "rank")
     suits = load_templates(args.templates, "suit")
     if not ranks or not suits:
         print(f"erro: templates não encontrados em {args.templates}", file=sys.stderr)
         return 1
+
+    colors_path = args.glyphs / "colors.json"
+    colors: dict[str, str] = json.loads(colors_path.read_text(encoding="utf-8")) if colors_path.exists() else {}
 
     print(f"{len(ranks)} templates de rank, {len(suits)} de naipe\n")
 
@@ -76,8 +91,11 @@ def main() -> int:
         rank_glyph = cv2.imread(str(members[0]), cv2.IMREAD_GRAYSCALE)
         suit_glyph = cv2.imread(str(members[1]), cv2.IMREAD_GRAYSCALE)
 
+        ink = colors.get(members[1].stem, "unknown")
+        allowed = {suit for suit, color in SUIT_COLORS.items() if color == ink} if ink != "unknown" else None
+
         rank_result = rank_candidates(rank_glyph, ranks)
-        suit_result = rank_candidates(suit_glyph, suits)
+        suit_result = rank_candidates(suit_glyph, suits, allowed)
 
         card = f"{rank_result[0][0]}{suit_result[0][0]}" if rank_result and suit_result else "??"
         print(f"{stem}: {card}")
