@@ -8,7 +8,7 @@ import {
   startHand,
   type Action,
 } from "../src/betting.ts";
-import { parseCard, type Card } from "../src/card.ts";
+import { createDeck, parseCard, type Card } from "../src/card.ts";
 import {
   pendingBoardCards,
   totalPot,
@@ -86,16 +86,40 @@ function parseAction(input: string, state: GameState): Action | "quit" | null {
   }
 }
 
-function parseBoard(input: string, expected: number): Card[] | null {
+/** Sorteia do que sobrou do baralho — o harness testa aposta, não entrada de carta. */
+function drawRandom(used: readonly Card[], count: number): Card[] {
+  const available = createDeck().filter((card) => !used.includes(card));
+  const drawn: Card[] = [];
+
+  while (drawn.length < count && available.length > 0) {
+    const [card] = available.splice(
+      Math.floor(Math.random() * available.length),
+      1,
+    );
+    if (card !== undefined) drawn.push(card);
+  }
+
+  return drawn;
+}
+
+function parseBoard(
+  input: string,
+  expected: number,
+  used: readonly Card[],
+): Card[] | null {
+  if (input.trim() === "") {
+    return drawRandom(used, expected);
+  }
+
   const cards = input
     .trim()
     .split(/\s+/)
     .map(parseCard)
     .filter((card): card is Card => card !== null);
 
-  return cards.length === expected && new Set(cards).size === expected
-    ? cards
-    : null;
+  const unique = new Set(cards);
+  if (cards.length !== expected || unique.size !== expected) return null;
+  return cards.some((card) => used.includes(card)) ? null : cards;
 }
 
 async function main(): Promise<void> {
@@ -127,12 +151,16 @@ async function main(): Promise<void> {
 
       const pending = pendingBoardCards(state);
       if (pending > 0) {
+        const prompt = `\n${pending} carta(s) do board — ex "Kh 7d 2s", ou enter pra sortear > `;
         const cards = parseBoard(
-          await terminal.question(`\n${pending} carta(s) do board > `),
+          await terminal.question(prompt),
           pending,
+          state.board,
         );
         if (cards === null) {
-          console.log("cartas inválidas ou repetidas");
+          console.log(
+            `informe ${pending} carta(s) distintas e ainda não no board`,
+          );
           continue;
         }
 
