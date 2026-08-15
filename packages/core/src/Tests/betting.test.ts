@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { applyAction, startHand, type Action } from "../betting.ts";
+import { applyAction, legalActions, startHand, type Action } from "../betting.ts";
 import type { GameState, HandConfig } from "../table.ts";
 
 const THREE_HANDED: HandConfig = {
@@ -145,6 +145,21 @@ describe("validação", () => {
       );
     }
   });
+
+    it("recusa ação enquanto faltar carta comunitária", () => {
+    const state = play(startHand(THREE_HANDED), [
+      { type: "call" },
+      { type: "call" },
+      { type: "check" },
+    ])
+
+    assert.equal(state.phase, "flop")
+    assert.deepEqual(legalActions(state), [], "sem board, nenhuma ação é legal")
+
+    const result = applyAction(state, { type: "check" })
+    assert.equal(result.ok, false)
+    assert.equal(result.ok === false && result.error, "board-incomplete")
+  })
 });
 
 describe("fim por fold", () => {

@@ -4,10 +4,10 @@ import { useState } from "react"
 
 import { pendingBoardCards, totalPot } from "@poker-broadcast/core"
 
-import { ActionBar } from "../../components/action-bar.tsx"
-import { CardInput } from "../../components/card-input.tsx"
-import { HandSetup } from "../../components/hand-setup.tsx"
-import { SeatList } from "../../components/seat-list.tsx"
+import { ActionBar } from "../../components/console/action-bar.tsx"
+import { CardInput } from "../../components/console/card-input.tsx"
+import { HandSetup } from "../../components/console/hand-setup.tsx"
+import { SeatList } from "../../components/console/seat-list.tsx"
 import { useEngine } from "../../lib/use-engine.ts"
 
 /**

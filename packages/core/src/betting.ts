@@ -1,5 +1,6 @@
 import {
   nextActive,
+  pendingBoardCards,
   roundIsComplete,
   seatToAct,
   type GameState,
@@ -25,6 +26,7 @@ export type Action =
 
 export type ActionError =
   | "hand-complete"
+  | "board-incomplete"
   | "no-seat-to-act"
   | "cannot-check"
   | "nothing-to-call"
@@ -145,6 +147,10 @@ export function applyAction(state: GameState, action: Action): ActionResult {
   if (state.phase === "complete" || state.phase === "showdown") {
     return { ok: false, error: "hand-complete" }
   }
+  // Na mesa o dealer vira as cartas antes da rodada: apostar sem board é fora de ordem
+  if (pendingBoardCards(state) > 0) {
+    return { ok: false, error: "board-incomplete" }
+  }
 
   const position = state.toAct
   const seat = seatToAct(state)
@@ -204,7 +210,7 @@ export function applyAction(state: GameState, action: Action): ActionResult {
 
 export function legalActions(state: GameState): Action["type"][] {
   const seat = seatToAct(state)
-  if (seat === null) return []
+  if (seat === null || pendingBoardCards(state) > 0) return []
 
   const toCall = state.currentBet - seat.committed
   const actions: Action["type"][] = ["fold", "allin"]
