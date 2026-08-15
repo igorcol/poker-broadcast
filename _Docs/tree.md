@@ -6,7 +6,6 @@ poker-broadcast/
 │   ├── engine/           # processo Node: state machine + WebSocket server
 │   └── web/              # Next.js: rotas /overlay e /console
 ├── services/
-│   └── vision/           # Python + OpenCV, venv próprio
 ├── docs/
 └── data/
     ├── recordings/       # vídeos da Fase 0 (fora do git)
