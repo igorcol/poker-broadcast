@@ -1,6 +1,7 @@
 """Roda um modelo YOLO de detecção de cartas sobre frames e anota o resultado."""
 
-# python services/vision/detect_cards.py data/frames/peek_0001_00170.png
+# EM UM FRAME: python services/vision/detect_cards.py data/frames/peek_0001_00170.png
+# CLIPE INTEIRO (/frames): python services/vision/detect_cards.py data/frames --out data/frames/allframes --conf 0.15
 
 from __future__ import annotations
 
@@ -29,6 +30,8 @@ def main() -> int:
     parser.add_argument("--model", type=Path, default=Path("services/vision/models/playing-cards.pt"))
     parser.add_argument("--out", type=Path, default=Path("data/frames/detected"))
     parser.add_argument("--conf", type=float, default=0.25, help="confiança mínima")
+    parser.add_argument("--imgsz", type=int, default=640, help="resolução de entrada do modelo")
+    parser.add_argument("--augment", action="store_true", help="test-time augmentation")
     args = parser.parse_args()
 
     if not args.model.exists():
@@ -44,7 +47,9 @@ def main() -> int:
             print(f"aviso: não foi possível ler {frame_path}", file=sys.stderr)
             continue
 
-        detections = model.predict(image, conf=args.conf, verbose=False)[0]
+        detections = model.predict(
+            image, conf=args.conf, imgsz=args.imgsz, augment=args.augment, verbose=False
+        )[0]
 
         labels = [
             f"{detections.names[int(box.cls)]} {float(box.conf):.2f}"
