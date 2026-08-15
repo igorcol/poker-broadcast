@@ -1,13 +1,8 @@
 import { createInterface } from "node:readline/promises";
 import { argv, stdin, stdout } from "node:process";
 
-import {
-  applyAction,
-  dealBoard,
-  legalActions,
-  startHand,
-  type Action,
-} from "../src/betting.ts";
+import { applyAction, legalActions, startHand, type Action } from "../src/betting.ts"
+import { dealBoard } from "../src/dealing.ts"
 import { createDeck, parseCard, type Card } from "../src/card.ts";
 import {
   pendingBoardCards,

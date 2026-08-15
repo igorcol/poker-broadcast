@@ -1,12 +1,11 @@
-import type { Card } from "./card.ts"
 import {
   nextActive,
-  pendingBoardCards,
   roundIsComplete,
   seatToAct,
   type GameState,
   type HandConfig,
   type Phase,
+  type Result,
   type Seat,
 } from "./table.ts"
 
@@ -31,11 +30,8 @@ export type ActionError =
   | "nothing-to-call"
   | "raise-too-small"
   | "raise-exceeds-stack"
-  | "wrong-board-size"
 
-export type ActionResult =
-  | { readonly ok: true; readonly state: GameState }
-  | { readonly ok: false; readonly error: ActionError }
+export type ActionResult = Result<ActionError>
 
 const NEXT_PHASE: Record<Phase, Phase> = {
   preflop: "flop",
@@ -120,6 +116,7 @@ export function startHand(config: HandConfig): GameState {
     committed: 0,
     status: "active",
     hasActed: false,
+    cards: null,
   }))
 
   const withBlinds = base.map((seat, position) => {
@@ -197,13 +194,6 @@ export function applyAction(state: GameState, action: Action): ActionResult {
       return { ok: true, state: advance(applyAggression(state, position, seat, total)) }
     }
   }
-}
-
-export function dealBoard(state: GameState, cards: readonly Card[]): ActionResult {
-  if (cards.length === 0 || cards.length !== pendingBoardCards(state)) {
-    return { ok: false, error: "wrong-board-size" }
-  }
-  return { ok: true, state: { ...state, board: [...state.board, ...cards] } }
 }
 
 export function legalActions(state: GameState): Action["type"][] {

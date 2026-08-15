@@ -16,7 +16,14 @@ export interface Seat {
   readonly committed: number
   readonly status: SeatStatus
   readonly hasActed: boolean
+  /** `null` enquanto não lida — estado válido, o operador ou a visão preenche depois. */
+  readonly cards: readonly [Card, Card] | null
 }
+
+/** Resultado de qualquer transição: novo estado ou erro tipado, nunca throw. */
+export type Result<E extends string> =
+  | { readonly ok: true; readonly state: GameState }
+  | { readonly ok: false; readonly error: E }
 
 export interface GameState {
   readonly seats: readonly Seat[]
@@ -47,6 +54,11 @@ const BOARD_SIZE: Partial<Record<Phase, number>> = { flop: 3, turn: 4, river: 5 
 
 export function seatToAct(state: GameState): Seat | null {
   return state.toAct === null ? null : (state.seats[state.toAct] ?? null)
+}
+
+/** Toda carta já comprometida na mão — base da restrição de baralho. */
+export function usedCards(state: GameState): Card[] {
+  return [...state.board, ...state.seats.flatMap((seat) => seat.cards ?? [])]
 }
 
 /** Pote total incluindo o apostado na rodada corrente — é o número que vai pra tela. */
