@@ -21,7 +21,7 @@ from typing import Iterator
 import cv2
 import numpy as np
 
-from classification import describe, load_templates, rank_candidates, suits_for_ink
+from classification import SUIT_COLORS, describe, load_templates, rank_candidates, suits_for_ink
 from detection import find_candidates, find_pairs, pair_bounds
 from glyphs import Box, binarize, crop_box, ink_color, normalize, split_blobs
 
@@ -31,7 +31,10 @@ VIDEO_SUFFIXES = {".mp4", ".mov", ".avi", ".mkv"}
 WEBCAM_WIDTH = 848
 WEBCAM_HEIGHT = 478
 
-WINDOW = "railbird"
+WINDOW = "Poker Broadcast - Camera feed"
+
+HUD_GLYPH = 26
+HUD_PADDING = 8
 
 
 @dataclass(frozen=True)
@@ -138,7 +141,43 @@ def iter_webcam(index: int) -> Iterator[tuple[str, np.ndarray]]:
         capture.release()
 
 
-def annotate(image: np.ndarray, readings: list[Reading | None], fps: float) -> np.ndarray:
+def draw_suit_glyph(canvas: np.ndarray, template: np.ndarray, x: int, y: int, color: tuple[int, int, int]) -> None:
+    """Compõe o template do naipe como máscara — putText não renderiza ♠♥♦♣."""
+    glyph = cv2.resize(template, (HUD_GLYPH, HUD_GLYPH), interpolation=cv2.INTER_AREA)
+    canvas[y:y + HUD_GLYPH, x:x + HUD_GLYPH][glyph > 127] = color
+
+
+def draw_hud(canvas: np.ndarray, cards: list[str], suit_templates: dict[str, np.ndarray], fps: float) -> None:
+    height = min(canvas.shape[0], 34 + (HUD_GLYPH + HUD_PADDING if cards else 0))
+    width = min(canvas.shape[1], max(130, HUD_PADDING + len(cards) * (HUD_GLYPH * 2 + HUD_PADDING)))
+
+    panel = canvas[0:height, 0:width]
+    cv2.addWeighted(panel, 0.35, np.zeros_like(panel), 0.65, 0, panel)
+
+    cv2.putText(canvas, f"{fps:.1f} fps", (HUD_PADDING, 22),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+
+    x, y = HUD_PADDING, 32
+    for card in cards:
+        rank, suit = card[:-1], card[-1]
+        # Preto puro somiria no painel escurecido; branco preserva a distinção com vermelho
+        color = (0, 0, 255) if SUIT_COLORS.get(suit) == "red" else (255, 255, 255)
+
+        cv2.putText(canvas, rank, (x, y + HUD_GLYPH - 4), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+        x += HUD_GLYPH
+
+        template = suit_templates.get(suit)
+        if template is not None and x + HUD_GLYPH <= canvas.shape[1] and y + HUD_GLYPH <= canvas.shape[0]:
+            draw_suit_glyph(canvas, template, x, y, color)
+        x += HUD_GLYPH + HUD_PADDING
+
+
+def annotate(
+    image: np.ndarray,
+    readings: list[Reading | None],
+    fps: float,
+    suit_templates: dict[str, np.ndarray],
+) -> np.ndarray:
     output = image.copy()
 
     for reading in readings:
@@ -155,7 +194,7 @@ def annotate(image: np.ndarray, readings: list[Reading | None], fps: float) -> n
             cv2.putText(output, f"{reading.card} {score:.2f}", (x, y - 6),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
-    cv2.putText(output, f"{fps:.1f} fps", (8, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+    draw_hud(output, [r.card for r in readings if r is not None and r.card], suit_templates, fps)
     return output
 
 
@@ -216,7 +255,7 @@ def main() -> int:
                         print(f"    rank {describe(reading.rank)}  suit {describe(reading.suit)}")
 
             if args.show:
-                cv2.imshow(WINDOW, annotate(image, readings, fps))
+                cv2.imshow(WINDOW, annotate(image, readings, fps, suits))
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
     except RuntimeError as error:
