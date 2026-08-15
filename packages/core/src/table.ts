@@ -49,7 +49,12 @@ export function seatToAct(state: GameState): Seat | null {
   return state.toAct === null ? null : (state.seats[state.toAct] ?? null)
 }
 
-/** Quantas comunitárias faltam na fase atual. Zero quando a fase não vira carta. */
+/** Pote total incluindo o apostado na rodada corrente — é o número que vai pra tela. */
+export function totalPot(state: GameState): number {
+  return state.pot + state.seats.reduce((total, seat) => total + seat.committed, 0)
+}
+
+/** Quantas comunitárias faltam na fase atual — zero quando a fase não vira carta. */
 export function pendingBoardCards(state: GameState): number {
   const expected = BOARD_SIZE[state.phase] ?? state.board.length
   return Math.max(0, expected - state.board.length)
