@@ -12,6 +12,9 @@ MIN_BLOB_AREA_RATIO = 0.01
 MIN_VERTICAL_OVERLAP = 0.6
 MAX_HORIZONTAL_GAP_RATIO = 0.6
 
+# Diferença mínima entre o canal vermelho e o maior dos outros para considerar tinta vermelha
+RED_MARGIN = 20
+
 
 def crop_box(image: np.ndarray, center_x: float, center_y: float, width: float, height: float) -> np.ndarray:
     # Clampa nas bordas: box perto da margem estoura o frame e devolve recorte vazio
@@ -86,3 +89,11 @@ def split_blobs(binary: np.ndarray) -> list[Box]:
         if cv2.contourArea(contour) >= min_area
     ]
     return sorted(merge_glyph_parts(boxes), key=lambda box: box[1])
+
+def ink_color(crop: np.ndarray, mask: np.ndarray) -> str:
+    """Cor da tinta do glifo — sobrevive à compressão e corta os candidatos de naipe pela metade."""
+    pixels = crop[mask > 0]
+    if pixels.size == 0:
+        return "unknown"
+    blue, green, red = pixels.mean(axis=0)
+    return "red" if red - max(blue, green) > RED_MARGIN else "black"

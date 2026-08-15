@@ -9,26 +9,10 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
-
 import cv2
-
 import json
 
-import numpy as np
-
-from glyphs import binarize, normalize, split_blobs
-
-# Diferença mínima entre o canal vermelho e o maior dos outros para considerar tinta vermelha
-RED_MARGIN = 20
-
-
-def ink_color(crop: np.ndarray, mask: np.ndarray) -> str:
-    """Cor da tinta do glifo — sobrevive à compressão e corta os candidatos de naipe pela metade."""
-    pixels = crop[mask > 0]
-    if pixels.size == 0:
-        return "unknown"
-    blue, green, red = pixels.mean(axis=0)
-    return "red" if red - max(blue, green) > RED_MARGIN else "black"
+from glyphs import binarize, ink_color, normalize, split_blobs
 
 
 def split_crop(crop_path: Path, output_dir: Path) -> dict[str, str]:
