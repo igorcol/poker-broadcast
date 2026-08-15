@@ -1,6 +1,8 @@
 """Separa o recorte do índice em glifos (rank e naipe) normalizados."""
 
-# USO: python services/vision/split_index.py data/frames/crops/peek_0001.png
+# USO: 
+# python services/vision/split_index.py data/frames/crops/peek_0001.png
+# python services/vision/split_index.py data/frames/mser_crops --out data/frames/mser_glyphs
 
 from __future__ import annotations
 
@@ -13,27 +15,37 @@ import cv2
 from glyphs import binarize, normalize, split_blobs
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Separa rank e naipe do recorte do índice.")
-    parser.add_argument("crop", type=Path, help="recorte gerado por crop_index.py")
-    parser.add_argument("--out", type=Path, default=Path("data/frames/glyphs"))
-    args = parser.parse_args()
-
-    image = cv2.imread(str(args.crop), cv2.IMREAD_GRAYSCALE)
+def split_crop(crop_path: Path, output_dir: Path) -> int:
+    image = cv2.imread(str(crop_path), cv2.IMREAD_GRAYSCALE)
     if image is None:
-        print(f"erro: não foi possível ler o recorte: {args.crop}", file=sys.stderr)
-        return 1
+        print(f"aviso: não foi possível ler {crop_path}", file=sys.stderr)
+        return 0
 
     binary = binarize(image)
     boxes = split_blobs(binary)
 
-    args.out.mkdir(parents=True, exist_ok=True)
-
     for index, (x, y, w, h) in enumerate(boxes):
-        cv2.imwrite(str(args.out / f"{args.crop.stem}_{index}.png"), normalize(binary[y:y + h, x:x + w]))
-        print(f"glifo {index}: {w}x{h} em ({x},{y})")
+        cv2.imwrite(str(output_dir / f"{crop_path.stem}_{index}.png"), normalize(binary[y:y + h, x:x + w]))
 
-    print(f"{len(boxes)} glifos salvos em {args.out}")
+    print(f"{crop_path.name}: {len(boxes)} glifos {[(w, h) for _, _, w, h in boxes]}")
+    return len(boxes)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Separa rank e naipe do recorte do índice.")
+    parser.add_argument("crop", type=Path, help="recorte ou diretório de recortes")
+    parser.add_argument("--out", type=Path, default=Path("data/frames/glyphs"))
+    args = parser.parse_args()
+
+    crops = sorted(args.crop.glob("*.png")) if args.crop.is_dir() else [args.crop]
+    if not crops:
+        print(f"erro: nenhum recorte em {args.crop}", file=sys.stderr)
+        return 1
+
+    args.out.mkdir(parents=True, exist_ok=True)
+    total = sum(split_crop(path, args.out) for path in crops)
+
+    print(f"{total} glifos salvos em {args.out}")
     return 0
 
 
