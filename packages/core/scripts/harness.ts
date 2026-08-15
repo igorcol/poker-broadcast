@@ -146,8 +146,14 @@ async function main(): Promise<void> {
   );
 
   try {
-    while (state.phase !== "complete") {
+    while (true) {
       console.log(render(state));
+      if (
+        state.phase === "complete" ||
+        (state.toAct === null && pendingBoardCards(state) === 0)
+      ) {
+        break;
+      }
 
       const pending = pendingBoardCards(state);
       if (pending > 0) {
@@ -173,8 +179,6 @@ async function main(): Promise<void> {
         continue;
       }
 
-      if (state.toAct === null) break;
-
       console.log(`\nlegais: ${legalActions(state).join(", ")}`);
       const action = parseAction(await terminal.question("> "), state);
       if (action === "quit") break;
@@ -194,8 +198,7 @@ async function main(): Promise<void> {
     terminal.close();
   }
 
-  console.log(render(state));
-  console.log(`\nmão encerrada em ${state.phase} — pote ${state.pot}`);
+  console.log(`\nmão encerrada em ${state.phase} — pote ${totalPot(state)}`);
 }
 
 await main();

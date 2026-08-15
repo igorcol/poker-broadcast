@@ -131,3 +131,32 @@ describe("all-in", () => {
     assert.equal(state.currentBet, 50)
   })
 })
+
+describe("conservação de fichas", () => {
+  const total = THREE_HANDED.seats.reduce((sum, seat) => sum + seat.stack, 0)
+
+  function assertConserved(state: GameState, label: string): void {
+    const held = state.seats.reduce((sum, seat) => sum + seat.stack + seat.committed, 0)
+    assert.equal(held + state.pot, total, `fichas não batem ${label}`)
+  }
+
+  it("mantém o total em toda transição de uma mão com raise e all-in", () => {
+    let state = startHand(THREE_HANDED)
+    assertConserved(state, "após os blinds")
+
+    for (const action of [{ type: "raise" as const, to: 60 }, { type: "call" as const }, { type: "call" as const }]) {
+      const result = applyAction(state, action)
+      assert.ok(result.ok, `ação ${action.type} rejeitada`)
+      state = result.state
+      assertConserved(state, `após ${action.type}`)
+    }
+
+    assert.equal(state.phase, "flop")
+    assert.equal(state.pot, 180)
+  })
+
+  it("mantém o total quando todos foldam menos um", () => {
+    const state = play(startHand(THREE_HANDED), [{ type: "fold" }, { type: "fold" }])
+    assertConserved(state, "após a mão encerrar por fold")
+  })
+})
