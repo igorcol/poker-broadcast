@@ -1,6 +1,7 @@
 """Desenha os contornos candidatos a carta sobre um frame, para inspeção visual."""
 
 # python services/vision/detect_cards.py data/frames/peek_0001_00170.png
+# python services/vision/detect_cards.py data/frames/peek_0001_00170.png --roi 0,0.3,1,1
 # Usar frame que cartas estão levantadas
 
 from __future__ import annotations
@@ -50,10 +51,21 @@ def annotate(image: np.ndarray, contours: list[np.ndarray]) -> np.ndarray:
     return output
 
 
+def parse_roi(value: str, width: int, height: int) -> tuple[int, int, int, int]:
+    x0, y0, x1, y1 = (float(part) for part in value.split(","))
+    return int(x0 * width), int(y0 * height), int(x1 * width), int(y1 * height)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Anota contornos candidatos a carta em um frame.")
     parser.add_argument("frame", type=Path, help="caminho do frame PNG")
     parser.add_argument("--out", type=Path, default=Path("data/frames/annotated.png"))
+    parser.add_argument(
+        "--roi",
+        type=str,
+        default="0,0,1,1",
+        help="x0,y0,x1,y1 como fração do frame (0-1) — corta o fundo antes de detectar",
+    )
     args = parser.parse_args()
 
     image = cv2.imread(str(args.frame))
@@ -61,9 +73,13 @@ def main() -> int:
         print(f"erro: não foi possível ler o frame: {args.frame}", file=sys.stderr)
         return 1
 
-    contours = find_card_contours(image)
+    height, width = image.shape[:2]
+    x0, y0, x1, y1 = parse_roi(args.roi, width, height)
+    cropped = image[y0:y1, x0:x1]
+
+    contours = find_card_contours(cropped)
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(args.out), annotate(image, contours))
+    cv2.imwrite(str(args.out), annotate(cropped, contours))
 
     print(f"{len(contours)} candidatos — cantos: {[len(c) for c in contours]}")
     print(f"anotado em {args.out}")
