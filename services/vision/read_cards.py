@@ -1,5 +1,13 @@
 """Lê cartas de índices detectados em vídeo, frame ou diretório — sem arquivos intermediários."""
 
+# * Uso com webcam:
+# python services/vision/read_cards.py --webcam 0 --show
+
+# * Uso em gravação
+# python services/vision/read_cards.py data/recordings/peek_0001.mp4 --show
+
+# --show abre janela de visualização
+
 from __future__ import annotations
 
 import argparse
