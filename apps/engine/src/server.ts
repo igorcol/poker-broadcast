@@ -27,6 +27,49 @@ function isCardArray(value: unknown): value is Card[] {
   );
 }
 
+function isPositiveInteger(value: unknown): boolean {
+  return Number.isInteger(value) && (value as number) > 0;
+}
+
+function isAction(value: unknown): boolean {
+  if (typeof value !== "object" || value === null) return false;
+  const action = value as Record<string, unknown>;
+
+  switch (action["type"]) {
+    case "fold":
+    case "check":
+    case "call":
+    case "allin":
+      return true;
+    case "raise":
+      return isPositiveInteger(action["to"]);
+    default:
+      return false;
+  }
+}
+
+function isHandConfig(value: unknown): boolean {
+  if (typeof value !== "object" || value === null) return false;
+  const config = value as Record<string, unknown>;
+
+  return (
+    Array.isArray(config["seats"]) &&
+    config["seats"].length >= 2 &&
+    config["seats"].every((seat: unknown) => {
+      if (typeof seat !== "object" || seat === null) return false;
+      const entry = seat as Record<string, unknown>;
+      return (
+        Number.isInteger(entry["index"]) &&
+        typeof entry["name"] === "string" &&
+        isPositiveInteger(entry["stack"])
+      );
+    }) &&
+    Number.isInteger(config["button"]) &&
+    isPositiveInteger(config["smallBlind"]) &&
+    isPositiveInteger(config["bigBlind"])
+  );
+}
+
 /** Valida só o suficiente pra não passar lixo ao core. O core devolve erro tipado no resto. */
 function parseMessage(raw: string): ClientMessage | null {
   let value: unknown;
@@ -42,22 +85,20 @@ function parseMessage(raw: string): ClientMessage | null {
 
   switch (message["type"]) {
     case "start-hand":
-      return typeof message["config"] === "object" && message["config"] !== null
+      return isHandConfig(message["config"])
         ? (message as unknown as ClientMessage)
         : null;
-
     case "action":
-      return typeof message["action"] === "object" && message["action"] !== null
+      return isAction(message["action"])
         ? (message as unknown as ClientMessage)
         : null;
-
     case "deal-board":
       return isCardArray(message["cards"])
         ? (message as unknown as ClientMessage)
         : null;
-
     case "set-cards":
-      return typeof message["seat"] === "number" &&
+      return Number.isInteger(message["seat"]) &&
+        (message["seat"] as number) >= 0 &&
         isCardArray(message["cards"]) &&
         message["cards"].length === 2
         ? (message as unknown as ClientMessage)
@@ -73,7 +114,8 @@ function parseMessage(raw: string): ClientMessage | null {
 
 const session = new Session();
 const cardSource = new ManualCardSource();
-const server = new WebSocketServer({ port: PORT });
+// Bind explícito em loopback: sem host, o ws escuta em 0.0.0.0 e expõe hole cards na rede local
+const server = new WebSocketServer({ port: PORT, host: "127.0.0.1" })
 
 function send(socket: WebSocket, message: ServerMessage): void {
   socket.send(JSON.stringify(message));

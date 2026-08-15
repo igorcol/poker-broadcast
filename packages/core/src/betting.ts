@@ -30,6 +30,7 @@ export type ActionError =
   | "nothing-to-call"
   | "raise-too-small"
   | "raise-exceeds-stack"
+  | "invalid-amount"
 
 export type ActionResult = Result<ActionError>
 
@@ -43,7 +44,8 @@ const NEXT_PHASE: Record<Phase, Phase> = {
 }
 
 function commit(seat: Seat, amount: number): Seat {
-  const paid = Math.min(amount, seat.stack)
+  // Clampa em zero: valor negativo devolveria fichas ao stack, criando dinheiro do nada
+  const paid = Math.max(0, Math.min(amount, seat.stack))
   const stack = seat.stack - paid
   return {
     ...seat,
@@ -171,6 +173,10 @@ export function applyAction(state: GameState, action: Action): ActionResult {
     }
 
     case "raise": {
+      // Antes de comparar: valor não numérico faz toda comparação virar false e aprovar tudo
+      if (!Number.isInteger(action.to) || action.to <= 0) {
+        return { ok: false, error: "invalid-amount" }
+      }
       if (action.to < state.currentBet + state.minRaise) {
         return { ok: false, error: "raise-too-small" }
       }
