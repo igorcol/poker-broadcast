@@ -1,0 +1,31 @@
+# deps
+node_modules/
+
+# next
+.next/
+out/
+build/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# env
+.env
+.env.local
+.env*.local
+
+# os
+Thumbs.db
+.DS_Store
+
+# gravações da Fase 0 — pesadas demais pro git; o manifesto de rótulos vai versionado
+data/**/*.mp4
+data/**/*.mov
+data/**/*.avi
+data/**/*.mkv
+
+# frames brutos gravados em runtime (decisão 11)
+data/frames/
