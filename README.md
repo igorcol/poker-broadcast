@@ -6,3 +6,5 @@ Transmissão de poker ao vivo com leitura de cartas por câmera embutida no rail
 - [Plano e decisões](_Docs/plan.md) — fases, edge cases, registro de decisões
 
 **Status:** Fase 0 — harness de captura e dataset.
+
+python services/vision/read_cards.py data/recordings/peek_2.mp4
