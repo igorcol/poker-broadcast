@@ -99,7 +99,11 @@ pip install -r services/vision/requirements.txt
 
 Ler as cartas de um vídeo, frame a frame:
 ```
-python services/vision/read_cards.py data/recordings/peek_0001.mp4
+python services/vision/read_cards.py data/recordings/peek_0001.mp4 --show
+```
+Ler as cartas de uma WEBCAM:
+```
+python services/vision/read_cards.py --webcam 0 --show
 ```
 
 Aceita `.mp4`, PNG solto ou diretório de PNGs. `--verbose` mostra os scores e os segundos
