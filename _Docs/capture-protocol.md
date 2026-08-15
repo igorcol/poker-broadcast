@@ -21,7 +21,17 @@ Largura fixa evita parsing ambíguo. Essa notação vale no sistema inteiro — 
 Condição e rótulo vivem no manifesto. Nome de arquivo é chave, não banco de dados:
 taxonomia codificada em nome obriga a renomear tudo quando a taxonomia muda.
 
-- Formato: MP4 / H.264, 1080p, 30fps
+- Capturar com o **app de câmera nativo**, nunca pela câmera de app de mensagem —
+  compressão na captura introduz artefato de bloco que destrói a borda do glifo
+- Transferir por cabo, cartão ou upload de arquivo original. Mensageiro reencoda e degrada
+- Câmera **fixa** durante toda a sessão. Na mão o setup não é reproduzível e não existe ROI fixo
+- Duração: 3 a 6s — cartas na mesa, peek completo, cartas abaixadas
+- Um peek por arquivo
+
+O requisito de qualidade não é resolução de câmera, é **altura em pixels do glifo do índice**
+na carta de trás. Enquadra pra que as duas cartas ocupem o miolo do frame; câmera boa com
+carta pequena no canto vale menos que câmera modesta com a carta cheia.
+
 - Duração: 3 a 6s — cartas na mesa, peek completo, cartas abaixadas
 - Um peek por arquivo
 
@@ -31,19 +41,28 @@ taxonomia codificada em nome obriga a renomear tudo quando a taxonomia muda.
 JSONL porque o diff no git fica limpo (uma linha = uma gravação) e o Python lê linha a linha.
 
 ```json
-{"file":"peek_0001.mp4","cards":["Ah","Kd"],"setup":"s1","light":"good","peek":"slow","overlap":"low","hand":"open","notes":""}
+{
+  "file": "peek_0001.mp4",
+  "cards": ["Ah", "Kd"],
+  "setup": "s1",
+  "light": "good",
+  "peek": "slow",
+  "overlap": "low",
+  "hand": "open",
+  "notes": ""
+}
 ```
 
-| campo | valores |
-|---|---|
-| `cards` | duas cartas, ordem: mais à esquerda primeiro (visão da câmera) |
-| `setup` | id da montagem física (tabela abaixo) |
-| `light` | `good` \| `dim` \| `harsh` |
-| `peek` | `fast` \| `slow` |
+| campo     | valores                                                            |
+| --------- | ------------------------------------------------------------------ |
+| `cards`   | duas cartas, ordem: mais à esquerda primeiro (visão da câmera)     |
+| `setup`   | id da montagem física (tabela abaixo)                              |
+| `light`   | `good` \| `dim` \| `harsh`                                         |
+| `peek`    | `fast` \| `slow`                                                   |
 | `overlap` | `low` (cartas separadas) \| `high` (a de trás parcialmente oclusa) |
-| `hand` | `open` \| `closed` (mão cobrindo por cima) |
+| `hand`    | `open` \| `closed` (mão cobrindo por cima)                         |
 
-**Regra de ouro do rótulo:** anota a linha no manifesto *antes* de embaralhar.
+**Regra de ouro do rótulo:** anota a linha no manifesto _antes_ de embaralhar.
 Rotular de memória no fim da sessão é como o dataset apodrece.
 
 ## Cobertura mínima (30 clipes = 60 cartas)
@@ -55,7 +74,7 @@ Se gravar aleatório, cai tudo em luz boa e carta numérica — e o baseline nã
 - Cada naipe ao menos 10x
 - `light`: mínimo 10 `good`, 10 `dim`, 6 `harsh`
 - `peek`: mínimo 10 `fast`
-- `overlap`: mínimo 10 `high`
+- `overlap`: mínimo 10 `high` **e mínimo 10 `low`** — `low` é o cenário fácil e serve de piso do baseline
 - `hand`: mínimo 10 `closed`
 
 Monta as duplas de propósito, não embaralhando. Cobertura é requisito, não sorte.
@@ -65,6 +84,6 @@ Monta as duplas de propósito, não embaralhando. Cobertura é requisito, não s
 Altura e distância são incógnitas da Fase 0 — provavelmente mais de uma montagem.
 Registra cada uma e referencia pelo `setup` no manifesto.
 
-| id | altura da lente | distância da carta | câmera | notas |
-|---|---|---|---|---|
-| s1 | | | | |
+| id  | altura da lente | distância da carta | câmera | notas |
+| --- | --------------- | ------------------ | ------ | ----- |
+| s1  |                 |                    |        |       |
