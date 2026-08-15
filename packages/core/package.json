@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "test": "node --experimental-strip-types --test src/*.test.ts",
+    "test": "node --experimental-strip-types --test src/Tests/*.test.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
