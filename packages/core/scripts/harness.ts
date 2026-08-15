@@ -11,6 +11,15 @@ import { pendingBoardCards, type GameState, type HandConfig } from "../src/table
  * Descartável - existe pra validar o motor antes do console, e sai quando o console entrar.
  */
 
+// --- RODAR ---
+// Três jogadores:
+// npm run harness --workspace @poker-broadcast/core
+
+// Heads-up:
+// npm run harness --workspace @poker-broadcast/core -- 2
+
+// npm test --workspace @poker-broadcast/core
+
 const STACK = 1000
 const SMALL_BLIND = 10
 const BIG_BLIND = 20
