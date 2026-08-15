@@ -4,12 +4,9 @@ import type { ServerMessage } from "@poker-broadcast/core"
 
 /**
  * Cliente mínimo pra verificar o engine sem console nem overlay.
- * Conecta, abre uma mão, aplica duas ações e imprime o estado que voltar.
- * Descartavel
+ * Espera o estado inicial, roda um roteiro de mensagens e imprime o que voltar de cada uma.
+ * É descartável — some quando o console da 2.7 existir.
  */
-
-// 1. npm start --workspace @poker-broadcast/engine
-// 2. npm run probe --workspace @poker-broadcast/engine
 
 const socket = new WebSocket("ws://localhost:4000")
 
@@ -29,29 +26,24 @@ const SCRIPT = [
   },
   { type: "action", action: { type: "raise", to: 60 } },
   { type: "set-cards", seat: 0, cards: ["Ks", "Qh"] },
+  { type: "set-cards", seat: 1, cards: ["Ks", "2d"] },
   { type: "action", action: { type: "fold" } },
   { type: "undo" },
 ]
 
-let step = 0
+let step = -1
 
-socket.addEventListener("open", () => {
-  socket.send(JSON.stringify(SCRIPT[step]))
-})
+function describe(message: ServerMessage): string {
+  if (message.type === "error") return `erro: ${message.error}`
+
+  const state = message.state
+  if (state === null) return "sem mão"
+  return `${state.phase} · pote ${state.pot} · toAct ${state.toAct} · seat0 ${JSON.stringify(state.seats[0]?.cards)}`
+}
 
 socket.addEventListener("message", (event) => {
   const message: ServerMessage = JSON.parse(String(event.data))
-
-  if (message.type === "error") {
-    console.log(`erro: ${message.error}`)
-  } else {
-    const state = message.state
-    console.log(
-      state === null
-        ? "sem mão"
-        : `${state.phase} · pote ${state.pot} · toAct ${state.toAct} · seat0 ${JSON.stringify(state.seats[0]?.cards)}`,
-    )
-  }
+  console.log(`${step < 0 ? "conexão" : SCRIPT[step]?.type}: ${describe(message)}`)
 
   step += 1
   const next = SCRIPT[step]
