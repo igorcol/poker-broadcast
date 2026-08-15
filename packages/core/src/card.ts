@@ -1,3 +1,9 @@
+/**
+ * Carta e baralho na notação de 2 caracteres (`Ks`, `Td`, `7c`) usada em todo o sistema.
+ * Faz parse tolerante da entrada do operador e valida as 52 combinações em tempo de compilação.
+ * É o vocabulário compartilhado entre visão, motor e overlay — nada de carta se define fora daqui.
+ */
+
 export const RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"] as const
 export const SUITS = ["s", "h", "d", "c"] as const
 

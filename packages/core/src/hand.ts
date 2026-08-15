@@ -1,5 +1,11 @@
 import type { Card } from "./card.ts"
 
+/**
+ * Máquina de estado de uma mão de Texas Hold'em: assentos, blinds, ordem de ação e fases.
+ * Recebe a intenção do operador via `applyAction` e devolve o próximo estado ou erro tipado.
+ * É a fonte da verdade das regras — nenhuma regra de Hold'em vive fora daqui.
+ */
+
 export type Phase = "preflop" | "flop" | "turn" | "river" | "showdown" | "complete"
 export type SeatStatus = "active" | "folded" | "allin"
 
