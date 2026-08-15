@@ -149,14 +149,20 @@ Projeto pessoal de estudo do Igor, com intenção de virar ferramenta para campe
 
 **Projeto:** casa de poker média conseguir transmitir com qualidade de tela comparável à referência do mercado, sem comprar hardware especializado.
 
-**Medido nos 3 clipes da Fase 0, pipeline MSER + template matching:**
-552 índices analisados, 431 leituras, **zero leitura errada** (78% de aproveitamento;
-86 não lidos e 35 pares inválidos, todos recusas). As 6 cartas (`6h Ks 2d 4s 8h 6s`)
-foram lidas corretamente em janelas contíguas, com zero falso positivo fora do peek.
+**Medido — pipeline MSER + template matching, 7 clipes:**
+1.501 leituras, **3 erradas (0,20%)**. Os 13 ranks e os 4 naipes foram lidos em
+condição real, incluindo o `T` de dois glifos (83 leituras, zero falha).
 
-Os 552 índices não são amostras independentes — são frames consecutivos das mesmas
-6 cartas. Provam robustez ao longo do peek (movimento, oclusão intermitente,
-mudança de ângulo), não generalização.
+O único erro: `Ac` lido como `As` em 3 frames de 52, nos frames 87/92/97 — isolados,
+não consecutivos. É o par `♠`/`♣`, cuja margem no matching fica em 0,13–0,15.
+Não é sistemático: no clipe de naipes, paus e espadas coexistiram no mesmo frame
+~120 vezes cada, sem uma única confusão.
+
+**Erro por peek, com voto de maioria: zero.** Confirma na prática a decisão de
+commitar carta só após N frames consistentes — o voto descarta o outlier isolado.
+
+Escopo do medido: 1 baralho, 1 setup, 1 condição de luz. Suficiente para instalação
+fixa, que é o caso de uso; não valida generalização entre baralhos.
 
 Amostra insuficiente para o número da Fase 1: 3 peeks, 1 baralho, 1 condição de luz,
 1 setup. Falta rodar nos 30 clipes com a cobertura de luz/oclusão que o
