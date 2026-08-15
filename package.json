@@ -13,6 +13,8 @@
     "engine:dev": "npm run dev --workspace @poker-broadcast/engine",
     
     "probe": "npm run probe --workspace @poker-broadcast/engine",
-    "harness": "npm run harness --workspace @poker-broadcast/core"
+    "harness": "npm run harness --workspace @poker-broadcast/core",
+    
+    "web": "npm run dev --workspace @poker-broadcast/web"
   }
 }
