@@ -203,3 +203,5 @@ capture-protocol define.
 | 22 | Classificação por template matching (IoU) sobre glifo binarizado e normalizado 48x48 | Banco de 17 templates capturado numa sessão; dispensa dataset, GPU e anotação |
 | 23 | Cor da tinta restringe os candidatos de naipe | Todos os erros de naipe dos modelos testados foram dentro da mesma cor — vermelho/preto nunca falhou. Corta 4 candidatos para 2 e elimina o par ♠/♦ da disputa |
 | 24 | Leitura exige rank e naipe acima do limiar simultaneamente | Falso positivo medido com naipe a 0,87 e rank a 0,29: exigir só um dos dois deixaria lixo passar |
+| 25 | Engine escuta apenas em loopback (`127.0.0.1`) | Sem host explícito o `ws` faz bind em `0.0.0.0`: qualquer máquina da rede conectaria e receberia o broadcast com hole cards em tempo real — o vetor de trapaça da Open Question 3, sem nem precisar contornar o delay |
+| 26 | Validação em duas camadas: fronteira valida forma, core valida regra | Medido: um `raise` com valor não numérico contamina `currentBet`, e a partir dali toda comparação numérica retorna `false` e aprova tudo. O estado criou 530 fichas do nada, em silêncio |
