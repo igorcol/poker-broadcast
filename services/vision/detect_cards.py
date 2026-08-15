@@ -18,12 +18,15 @@ MIN_AREA_RATIO = 0.01
 
 
 def find_card_contours(image: np.ndarray) -> list[np.ndarray]:
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    edges = cv2.Canny(blurred, 50, 150)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    # Carta é papel branco — saturação baixa, brilho alto. A borda contra a mesa
+    # é fraca demais pro Canny, mas a região inteira se separa bem por cor
+    lower = np.array([0, 0, 150])
+    upper = np.array([180, 60, 255])
+    mask = cv2.inRange(hsv, lower, upper)
 
-    # Dilata pra fechar borda interrompida por sombra na quina da carta
-    closed = cv2.dilate(edges, np.ones((3, 3), np.uint8), iterations=2)
+    # Fecha buracos pequenos (miolo do naipe, faixa amarela) sem grudar blobs distintos
+    closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((15, 15), np.uint8))
 
     contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     min_area = image.shape[0] * image.shape[1] * MIN_AREA_RATIO
@@ -37,7 +40,6 @@ def find_card_contours(image: np.ndarray) -> list[np.ndarray]:
         candidates.append(approx)
 
     return candidates
-
 
 def annotate(image: np.ndarray, contours: list[np.ndarray]) -> np.ndarray:
     output = image.copy()
