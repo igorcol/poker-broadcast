@@ -1,18 +1,25 @@
 "use client"
 
+import { useState } from "react"
+
 import { legalActions, totalPot } from "@poker-broadcast/core"
 
+import { HandSetup } from "../../components/hand-setup.tsx"
 import { SeatList } from "../../components/seat-list.tsx"
 import { useEngine } from "../../lib/use-engine.ts"
 
 /**
- * Tela de operação da mesa: estado da mão, assentos e ações disponíveis.
+ * Tela de operação da mesa: cadastro pré-mão, estado da mão e ações disponíveis.
+ * Alterna entre cadastro e mesa conforme houver mão em andamento no engine.
  * Reflete o engine em tempo real; qualquer divergência aqui é bug de transporte.
- * TODO:: Nesta etapa é somente leitura. Cadastro e comandos entram em breve.
  */
 
 export default function ConsolePage() {
-  const { state, error, connected } = useEngine()
+  const { state, error, connected, send } = useEngine()
+  const [forceSetup, setForceSetup] = useState(false)
+
+  const handOver = state === null || state.phase === "complete"
+  const showSetup = handOver || forceSetup
 
   return (
     <main className="console">
@@ -25,9 +32,7 @@ export default function ConsolePage() {
 
       {error !== null && <p className="error">{error}</p>}
 
-      {state === null ? (
-        <p className="empty">nenhuma mão em andamento</p>
-      ) : (
+      {state !== null && (
         <>
           <section className="summary">
             <span>{state.phase}</span>
@@ -41,6 +46,23 @@ export default function ConsolePage() {
             {legalActions(state).length > 0 ? legalActions(state).join(" · ") : "sem ação pendente"}
           </footer>
         </>
+      )}
+
+      {showSetup ? (
+        <HandSetup
+          onStart={(config) => {
+            send({ type: "start-hand", config })
+            setForceSetup(false)
+          }}
+          // Cancelar só faz sentido quando há mão viva pra voltar
+          onCancel={handOver ? null : () => setForceSetup(false)}
+        />
+      ) : (
+        <div className="setup__actions">
+          <button type="button" onClick={() => setForceSetup(true)}>
+            nova mão
+          </button>
+        </div>
       )}
     </main>
   )

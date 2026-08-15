@@ -18,6 +18,7 @@ body {
   font: 14px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 
+.console { max-width: 720px; }
 .console__header { display: flex; align-items: baseline; gap: 12px; }
 .console__header h1 { font-size: 16px; margin: 0 0 16px; letter-spacing: 0.1em; }
 
@@ -61,3 +62,36 @@ body {
 .seat__stack, .seat__bet { text-align: right; }
 
 .legal { margin-top: 16px; color: var(--muted); }
+
+.setup { background: var(--panel); border: 1px solid var(--line); padding: 16px; }
+.setup h2 { font-size: 13px; margin: 0 0 12px; color: var(--muted); letter-spacing: 0.1em; }
+
+.setup__seat { display: grid; grid-template-columns: 3ch 1fr 10ch; gap: 8px; margin-bottom: 6px; }
+.setup__seat span { color: var(--muted); line-height: 28px; }
+
+.setup__blinds { display: flex; gap: 12px; margin: 16px 0; align-items: center; }
+.setup__blinds label { color: var(--muted); }
+
+.setup input, .setup select {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 4px 8px;
+  font: inherit;
+  width: 100%;
+}
+.setup__blinds input, .setup__blinds select { width: 8ch; }
+
+.setup__actions { display: flex; gap: 8px; margin-top: 16px; }
+
+button {
+  background: var(--line);
+  border: 1px solid transparent;
+  color: var(--text);
+  padding: 6px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+button:hover { border-color: var(--acting); }
+button.primary { background: var(--acting); color: #1a1a1a; font-weight: 600; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
