@@ -164,6 +164,11 @@ commitar carta só após N frames consistentes — o voto descarta o outlier iso
 Escopo do medido: 1 baralho, 1 setup, 1 condição de luz. Suficiente para instalação
 fixa, que é o caso de uso; não valida generalização entre baralhos.
 
+```markdown
+**Latência medida:** 25–30 fps em 848×478, CPU, sem GPU. Um peek de ~1,2s entrega
+30 a 36 observações — folga confortável para o voto de N frames da Fase 3.
+```
+
 Amostra insuficiente para o número da Fase 1: 3 peeks, 1 baralho, 1 condição de luz,
 1 setup. Falta rodar nos 30 clipes com a cobertura de luz/oclusão que o
 capture-protocol define.

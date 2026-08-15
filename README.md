@@ -102,8 +102,19 @@ Ler as cartas de um vídeo, frame a frame:
 python services/vision/read_cards.py data/recordings/peek_0001.mp4
 ```
 
-Aceita .mp4, PNG solto ou diretório de PNGs. --verbose mostra os scores e os segundos
-colocados de cada índice. Útil para analisar margem.
+Aceita `.mp4`, PNG solto ou diretório de PNGs. `--verbose` mostra os scores e os segundos
+colocados de cada índice — útil para investigar margem.
+
+Leitura ao vivo pela webcam, com as detecções desenhadas e as cartas no HUD:
+
+```bash
+python services/vision/read_cards.py --webcam 0 --show
+```
+
+O `--show` funciona em vídeo também, para revisar um clipe anotado em vez de abrir
+centenas de PNGs.
+
+O pipeline roda a 25–30 fps em 848×478, em CPU. Tempo real sem GPU.
 
 Estrutura
 ```
