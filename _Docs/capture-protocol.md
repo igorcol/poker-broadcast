@@ -55,7 +55,7 @@ JSONL porque o diff no git fica limpo (uma linha = uma gravação) e o Python l�
 
 | campo     | valores                                                            |
 | --------- | ------------------------------------------------------------------ |
-| `cards`   | duas cartas, ordem: mais à esquerda primeiro (visão da câmera)     |
+| `cards`   | as duas cartas, sem ordem — a avaliação compara conjunto. Escrever em ordem alfabética só pra ter forma canônica no arquivo |
 | `setup`   | id da montagem física (tabela abaixo)                              |
 | `light`   | `good` \| `dim` \| `harsh`                                         |
 | `peek`    | `fast` \| `slow`                                                   |
