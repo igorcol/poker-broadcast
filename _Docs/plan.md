@@ -149,6 +149,11 @@ Projeto pessoal de estudo do Igor, com intenção de virar ferramenta para campe
 
 **Projeto:** casa de poker média conseguir transmitir com qualidade de tela comparável à referência do mercado, sem comprar hardware especializado.
 
+**Medido no peek_0001 (309 frames, 1 clipe):** 105 pares candidatos, 62 leituras,
+100% corretas, zero leitura errada. Janela de detecção contígua entre os frames 153-189,
+com zero falso positivo nos 270 frames restantes. Amostra insuficiente para o número
+da Fase 1 — falta rodar nos 30 clipes com variação de luz e oclusão.
+
 ---
 
 ## Registro de Decisões
@@ -175,3 +180,7 @@ Projeto pessoal de estudo do Igor, com intenção de virar ferramenta para campe
 | 18 | ML pré-treinado antes de OpenCV clássico — decisão 10 revertida | O clássico exigia 7 etapas em série (segmentar, separar cartas, achar cantos com oclusão, homografia, recortar índice, classificar rank, classificar naipe); a acurácia final é o produto delas. YOLO pré-treinado localiza o índice em uma etapa e sem dataset próprio |
 | 19 | Modelos pré-treinados públicos acertam rank e erram naipe | Medido em 4 casos reais: `Ks→Ac`, `6s→6c`, `8h→8d` (0,91 de confiança). Erro sempre dentro da mesma cor — a cor chega intacta, a forma do símbolo colapsa. O score de confiança não é calibrável para naipe |
 | 20 | Detecção e classificação separadas | YOLO localiza o índice (funciona bem, inclusive com a quina sob o dedo); classificador dedicado decide rank+naipe sobre o recorte em resolução nativa, sem o downscale para 640px que o detector aplica |
+| 21 | Detecção de índice por MSER + pareamento geométrico, sem modelo treinado | Localizou 6/6 índices contra 3/6 do melhor modelo público; o par vertical rank+naipe é restrição forte o bastante para dispensar treino |
+| 22 | Classificação por template matching (IoU) sobre glifo binarizado e normalizado 48x48 | Banco de 17 templates capturado numa sessão; dispensa dataset, GPU e anotação |
+| 23 | Cor da tinta restringe os candidatos de naipe | Todos os erros de naipe dos modelos testados foram dentro da mesma cor — vermelho/preto nunca falhou. Corta 4 candidatos para 2 e elimina o par ♠/♦ da disputa |
+| 24 | Leitura exige rank e naipe acima do limiar simultaneamente | Falso positivo medido com naipe a 0,87 e rank a 0,29: exigir só um dos dois deixaria lixo passar |
