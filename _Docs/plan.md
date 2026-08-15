@@ -170,3 +170,4 @@ Projeto pessoal de estudo do Igor, com intenção de virar ferramenta para campe
 | 13  | Sem Electron por enquanto                         | Distribuição não existe antes do produto; custo em toda iteração       |
 | 14  | Equity em Monte Carlo, ~100k iterações            | Exato é caro com 9 assentos; erro na terceira casa é invisível         |
 | 15  | `VideoFileSource` como fonte de primeira classe   | Iteração determinística e repetível sem mesa montada                   |
+| 16  | Índice do canto é o alvo primário de leitura, não o padrão de pips | Na sobreposição em leque a carta de trás só expõe o índice; e ler índice torna o pipeline uniforme nos 13 ranks, sem acoplar à arte de figura do baralho |

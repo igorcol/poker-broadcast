@@ -48,7 +48,10 @@ Isso resolve três problemas de uma vez:
 - **Atrito zero.** Nenhuma mudança de comportamento na mesa. O peek natural já é o gesto de captura.
 - **Atribuição de assento.** Campo de visão de centímetros. Câmera 3 fisicamente não enxerga a carta do assento 4. Assento vira geometria, não inferência.
 
-Nesse ângulo a carta aparece inteira, permitindo leitura pelo padrão de pips — alvo grande, alto contraste e redundante — em vez do índice do canto, que some com qualquer dedo por cima.
+Nesse ângulo o índice do canto fica exposto e livre da mão — o player segura pelo topo
+e pela lateral. É o alvo de leitura: na sobreposição em leque, a carta de trás não mostra
+mais nada além do índice, porque o baralho é desenhado exatamente pra isso.
+A carta da frente entrega índice e pips, e os pips entram como voto de confirmação.
 
 ### O gate temporal carrega a acurácia
 
