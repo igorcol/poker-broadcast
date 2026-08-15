@@ -149,10 +149,14 @@ Projeto pessoal de estudo do Igor, com intenção de virar ferramenta para campe
 
 **Projeto:** casa de poker média conseguir transmitir com qualidade de tela comparável à referência do mercado, sem comprar hardware especializado.
 
-**Medido no peek_0001 (309 frames, 1 clipe):** 105 pares candidatos, 62 leituras,
-100% corretas, zero leitura errada. Janela de detecção contígua entre os frames 153-189,
-com zero falso positivo nos 270 frames restantes. Amostra insuficiente para o número
-da Fase 1 — falta rodar nos 30 clipes com variação de luz e oclusão.
+**Medido nos 3 clipes da Fase 0, pipeline MSER + template matching:**
+mais de 400 leituras, **zero leitura errada**. As 6 cartas (`6h Ks 2d 4s 8h 6s`)
+foram lidas corretamente, em janelas contíguas, com zero falso positivo fora do peek.
+O peek_0002 fechou 246 índices com 16 não lidos e nenhum par inválido.
+
+Amostra insuficiente para o número da Fase 1: 3 peeks, 1 baralho, 1 condição de luz,
+1 setup. Falta rodar nos 30 clipes com a cobertura de luz/oclusão que o
+capture-protocol define.
 
 ---
 
