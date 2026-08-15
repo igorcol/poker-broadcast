@@ -1,34 +1,20 @@
 import type { Card } from "./card.ts"
+import {
+  nextActive,
+  roundIsComplete,
+  seatToAct,
+  type GameState,
+  type HandConfig,
+  type Phase,
+  type Seat,
+} from "./table.ts"
 
 /**
- * Máquina de estado de uma mão de Texas Hold'em: assentos, blinds, ordem de ação e fases.
+ * Transições de uma mão de Texas Hold'em: blinds, ordem de ação, raise mínimo e fases.
  * Recebe a intenção do operador via `applyAction` e devolve o próximo estado ou erro tipado.
- * É a fonte da verdade das regras — nenhuma regra de Hold'em vive fora daqui.
+ * É a fonte da verdade das regras. 
+ * ! Nenhuma regra de aposta vive fora daqui.
  */
-
-export type Phase = "preflop" | "flop" | "turn" | "river" | "showdown" | "complete"
-export type SeatStatus = "active" | "folded" | "allin"
-
-export interface Seat {
-  readonly index: number
-  readonly name: string
-  readonly stack: number
-  readonly committed: number
-  readonly status: SeatStatus
-  readonly hasActed: boolean
-}
-
-export interface GameState {
-  readonly seats: readonly Seat[]
-  readonly button: number
-  readonly phase: Phase
-  readonly board: readonly Card[]
-  readonly pot: number
-  readonly currentBet: number
-  readonly minRaise: number
-  readonly toAct: number | null
-  readonly bigBlind: number
-}
 
 export type Action =
   | { readonly type: "fold" }
@@ -49,19 +35,6 @@ export type ActionError =
 export type ActionResult =
   | { readonly ok: true; readonly state: GameState }
   | { readonly ok: false; readonly error: ActionError }
-
-export interface SeatConfig {
-  readonly index: number
-  readonly name: string
-  readonly stack: number
-}
-
-export interface HandConfig {
-  readonly seats: readonly SeatConfig[]
-  readonly button: number
-  readonly smallBlind: number
-  readonly bigBlind: number
-}
 
 const NEXT_PHASE: Record<Phase, Phase> = {
   preflop: "flop",
@@ -97,22 +70,6 @@ function blindPositions(count: number, button: number): { small: number; big: nu
   return { small: (button + 1) % count, big: (button + 2) % count }
 }
 
-function nextActive(seats: readonly Seat[], from: number): number | null {
-  for (let step = 1; step <= seats.length; step += 1) {
-    const position = (from + step) % seats.length
-    if (seats[position]?.status === "active") {
-      return position
-    }
-  }
-  return null
-}
-
-function roundIsComplete(state: GameState): boolean {
-  return state.seats
-    .filter((seat) => seat.status === "active")
-    .every((seat) => seat.hasActed && seat.committed === state.currentBet)
-}
-
 /** Move o apostado da rodada para o pote e limpa o estado de aposta. */
 function collect(state: GameState): GameState {
   return {
@@ -144,6 +101,16 @@ function advance(state: GameState): GameState {
   }
 
   return { ...collected, phase, toAct: first }
+}
+
+/** Aposta que reabre a rodada: todo mundo que já agiu precisa responder de novo. */
+function applyAggression(state: GameState, position: number, seat: Seat, to: number): GameState {
+  const raised = { ...commit(seat, to - seat.committed), hasActed: true }
+  const seats = state.seats.map((current, index) =>
+    index === position ? raised : { ...current, hasActed: false },
+  )
+
+  return { ...state, seats, currentBet: to, minRaise: to - state.currentBet }
 }
 
 export function startHand(config: HandConfig): GameState {
@@ -182,8 +149,8 @@ export function applyAction(state: GameState, action: Action): ActionResult {
   }
 
   const position = state.toAct
-  const seat = position === null ? undefined : state.seats[position]
-  if (position === null || seat === undefined) {
+  const seat = seatToAct(state)
+  if (position === null || seat === null) {
     return { ok: false, error: "no-seat-to-act" }
   }
 
@@ -233,16 +200,6 @@ export function applyAction(state: GameState, action: Action): ActionResult {
   }
 }
 
-/** Aposta que reabre a rodada: todo mundo que já agiu precisa responder de novo. */
-function applyAggression(state: GameState, position: number, seat: Seat, to: number): GameState {
-  const raised = { ...commit(seat, to - seat.committed), hasActed: true }
-  const seats = state.seats.map((current, index) =>
-    index === position ? raised : { ...current, hasActed: false },
-  )
-
-  return { ...state, seats, currentBet: to, minRaise: to - state.currentBet }
-}
-
 export function dealBoard(state: GameState, cards: readonly Card[]): ActionResult {
   const expected = BOARD_SIZE[state.phase]
   if (expected === undefined || state.board.length + cards.length !== expected) {
@@ -252,8 +209,8 @@ export function dealBoard(state: GameState, cards: readonly Card[]): ActionResul
 }
 
 export function legalActions(state: GameState): Action["type"][] {
-  const seat = state.toAct === null ? undefined : state.seats[state.toAct]
-  if (seat === undefined) return []
+  const seat = seatToAct(state)
+  if (seat === null) return []
 
   const toCall = state.currentBet - seat.committed
   const actions: Action["type"][] = ["fold", "allin"]

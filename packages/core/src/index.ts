@@ -1,2 +1,3 @@
 export * from "./card.ts"
-export * from "./hand.ts"
+export * from "./table.ts"
+export * from "./betting.ts"

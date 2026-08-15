@@ -1,7 +1,8 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
-import { applyAction, startHand, type Action, type GameState, type HandConfig } from "../hand.ts"
+import { applyAction, startHand, type Action } from "../betting.ts"
+import type { GameState, HandConfig } from "../table.ts"
 
 const THREE_HANDED: HandConfig = {
   seats: [
