@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 import cv2
@@ -64,6 +64,7 @@ def main() -> int:
     parser.add_argument("glyphs", type=Path, help="diretório com os glifos extraídos")
     parser.add_argument("--templates", type=Path, default=Path("data/templates"))
     parser.add_argument("--threshold", type=float, default=0.70, help="score mínimo para aceitar a leitura")
+    parser.add_argument("--verbose", action="store_true", help="mostra o detalhe de cada par")
     args = parser.parse_args()
     
     ranks = load_templates(args.templates, "rank")
@@ -84,9 +85,13 @@ def main() -> int:
         if index.isdigit():
             groups[stem][int(index)] = path
 
+    tally: Counter[str] = Counter()
+
     for stem, members in sorted(groups.items()):
         if set(members) != {0, 1}:
-            print(f"{stem}: {len(members)} glifos — ignorado")
+            tally["PAR INVÁLIDO"] += 1
+            if args.verbose:
+                print(f"{stem}: {len(members)} glifos — ignorado")
             continue
 
         rank_glyph = cv2.imread(str(members[0]), cv2.IMREAD_GRAYSCALE)
@@ -103,9 +108,16 @@ def main() -> int:
 
         # Não lido é resultado válido; leitura errada não é. O operador digita o que falhar
         card = f"{rank_result[0][0]}{suit_result[0][0]}" if rank_ok and suit_ok else "NÃO LIDO"
-        print(f"{stem}: {card}")
-        print(f"    rank {describe(rank_result)}")
-        print(f"    suit {describe(suit_result)}")
+        tally[card] += 1
+
+        if args.verbose:
+            print(f"{stem}: {card}")
+            print(f"    rank {describe(rank_result)}")
+            print(f"    suit {describe(suit_result)}")
+
+    print(f"\n{sum(tally.values())} pares analisados:")
+    for card, count in tally.most_common():
+        print(f"  {card:>12}  {count}")
 
     return 0
 
