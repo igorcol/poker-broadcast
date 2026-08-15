@@ -85,23 +85,21 @@ def find_pairs(candidates: list[Box]) -> list[tuple[Box, Box]]:
     ]
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Detecta índices de carta por MSER.")
-    parser.add_argument("frame", type=Path)
-    parser.add_argument("--min-area", type=int, default=80)
-    parser.add_argument("--max-area", type=int, default=3000)
-    parser.add_argument("--delta", type=int, default=5)
-    parser.add_argument("--out", type=Path, default=Path("data/frames/mser.png"))
-    parser.add_argument("--crops", type=Path, default=None, help="diretório para salvar o recorte de cada par")
-    args = parser.parse_args()
-
-    image = cv2.imread(str(args.frame))
+def process_frame(
+    frame_path: Path,
+    min_area: int,
+    max_area: int,
+    delta: int,
+    annotated_dir: Path,
+    crops_dir: Path | None,
+) -> None:
+    image = cv2.imread(str(frame_path))
     if image is None:
-        print(f"erro: não foi possível ler o frame: {args.frame}", file=sys.stderr)
-        return 1
+        print(f"aviso: não foi possível ler {frame_path}", file=sys.stderr)
+        return
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    candidates = find_candidates(gray, args.min_area, args.max_area, args.delta)
+    candidates = find_candidates(gray, min_area, max_area, delta)
     pairs = find_pairs(candidates)
 
     annotated = image.copy()
@@ -115,14 +113,39 @@ def main() -> int:
         x1, y1 = max(tx + tw, bx + bw), by + bh
         cv2.rectangle(annotated, (x0, y0), (x1, y1), (0, 255, 0), 2)
 
-        if args.crops:
-            args.crops.mkdir(parents=True, exist_ok=True)
+        if crops_dir:
             crop = crop_box(image, (x0 + x1) / 2, (y0 + y1) / 2, x1 - x0, y1 - y0)
-            cv2.imwrite(str(args.crops / f"{args.frame.stem}_pair{index}.png"), crop)
+            cv2.imwrite(str(crops_dir / f"{frame_path.stem}_pair{index}.png"), crop)
 
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(args.out), annotated)
-    print(f"{len(candidates)} candidatos, {len(pairs)} pares — anotado em {args.out}")
+    cv2.imwrite(str(annotated_dir / f"{frame_path.stem}.png"), annotated)
+    print(f"{frame_path.name}: {len(candidates)} candidatos, {len(pairs)} pares")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Detecta índices de carta por MSER.")
+    parser.add_argument("frames", type=Path, nargs="+", help="frames PNG ou diretórios")
+    parser.add_argument("--min-area", type=int, default=80)
+    parser.add_argument("--max-area", type=int, default=3000)
+    parser.add_argument("--delta", type=int, default=5)
+    parser.add_argument("--out", type=Path, default=Path("data/frames/mser"), help="diretório dos anotados")
+    parser.add_argument("--crops", type=Path, default=None, help="diretório para salvar o recorte de cada par")
+    args = parser.parse_args()
+
+    frames: list[Path] = []
+    for path in args.frames:
+        frames.extend(sorted(path.glob("*.png")) if path.is_dir() else [path])
+
+    if not frames:
+        print("erro: nenhum frame encontrado", file=sys.stderr)
+        return 1
+
+    args.out.mkdir(parents=True, exist_ok=True)
+    if args.crops:
+        args.crops.mkdir(parents=True, exist_ok=True)
+
+    for frame_path in frames:
+        process_frame(frame_path, args.min_area, args.max_area, args.delta, args.out, args.crops)
+
     return 0
 
 
