@@ -63,6 +63,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Classifica glifos de índice contra templates.")
     parser.add_argument("glyphs", type=Path, help="diretório com os glifos extraídos")
     parser.add_argument("--templates", type=Path, default=Path("data/templates"))
+    parser.add_argument("--threshold", type=float, default=0.70, help="score mínimo para aceitar a leitura")
     args = parser.parse_args()
     
     ranks = load_templates(args.templates, "rank")
@@ -97,7 +98,11 @@ def main() -> int:
         rank_result = rank_candidates(rank_glyph, ranks)
         suit_result = rank_candidates(suit_glyph, suits, allowed)
 
-        card = f"{rank_result[0][0]}{suit_result[0][0]}" if rank_result and suit_result else "??"
+        rank_ok = bool(rank_result) and rank_result[0][1] >= args.threshold
+        suit_ok = bool(suit_result) and suit_result[0][1] >= args.threshold
+
+        # Não lido é resultado válido; leitura errada não é. O operador digita o que falhar
+        card = f"{rank_result[0][0]}{suit_result[0][0]}" if rank_ok and suit_ok else "NÃO LIDO"
         print(f"{stem}: {card}")
         print(f"    rank {describe(rank_result)}")
         print(f"    suit {describe(suit_result)}")
