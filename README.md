@@ -1,23 +1,12 @@
 # Poker Broadcast
 
-Transmissão de poker ao vivo com leitura de hole cards por câmera embutida no rail — sem RFID.
+Transmissão de poker ao vivo com leitura de hole cards por câmera embutida no rail.
 
 Uma câmera fixa por assento, na altura do feltro, atrás das cartas. Quando o player
-levanta as cartas para espiar, apresenta a face à câmera sem saber. O peek natural
-já é o gesto de captura — sem ritual, sem mudança de comportamento na mesa.
+levanta as cartas para espiar, apresenta a face à câmera. 
 
-**Status:** Fase 1 concluída — leitura por visão validada com número medido.
-Fase 2 (motor de jogo, console e overlay) não iniciada.
-
-## O problema
-
-Produzir transmissão de poker com cara de TV exige mesa RFID: baralho com chip,
-antenas embutidas, tabletop dedicado. Custo alto, importação, instalação — fora do
-alcance de campeonato local e casa de poker média.
-
-O líder do mercado garante 100% de leitura em menos de 0,4s, via RFID. Quando a mesa
-não tem RFID, ele cai para digitação manual das hole cards. Ler hole card por câmera
-é problema em aberto.
+**Status:** Fase 1 concluída - leitura por visão validada com número medido.
+Fase 2 (motor de jogo, console e overlay) - não iniciada.
 
 ## Resultado medido
 
@@ -28,11 +17,11 @@ não tem RFID, ele cai para digitação manual das hole cards. Ler hole card por
 | 3 peeks reais | 431 | 0 |
 | 3 clipes cobrindo os 13 ranks | 705 | 3 |
 | 1 clipe cobrindo os 4 naipes | 365 | 0 |
-| **total** | **1.501** | **3 — 0,20%** |
+| **total** | **1.501** | **3 - 0,20%** |
 
 Os três erros são o mesmo caso: `A♣` lido como `A♠` em 3 frames de 52, isolados e não
-consecutivos. Com voto de maioria por peek — que é como o motor consome as observações —
-o erro vai a **zero**.
+consecutivos. Com voto de maioria por peek, que é como o motor consome as observações.
+O erro vai a **zero**.
 
 Errar em silêncio destrói a credibilidade da transmissão. Não ler e avisar é o fallback
 funcionando. O sistema nunca chuta: confiança abaixo do limiar vira "assento não lido"
@@ -44,21 +33,21 @@ fixa, que é o caso de uso; não valida generalização entre baralhos.
 ## Como funciona
 
 O alvo de leitura é o **índice do canto**, não a carta inteira. Com duas cartas
-sobrepostas em leque, a de trás não expõe mais nada — o baralho é desenhado
+sobrepostas em leque, a de trás não expõe mais nada. O baralho é desenhado
 exatamente para isso.
 
 Pipeline, todo em OpenCV clássico:
 
-1. **MSER** encontra regiões de intensidade estável — o algoritmo padrão para texto em
+1. **MSER** encontra regiões de intensidade estável - o algoritmo padrão para texto em
    cena natural, e o único que não depende de contorno fechado nem de brilho absoluto
 2. **Pareamento geométrico** filtra os candidatos: índice é um par vertical, rank em cima
    e naipe logo abaixo, mesmo eixo, tamanhos comparáveis
-3. **Recorte em resolução nativa** — sem o downscale que um detector treinado aplicaria
+3. **Recorte em resolução nativa** - sem o downscale que um detector treinado aplicaria
 4. **Binarização por Otsu** e separação dos dois glifos, fundindo blocos lado a lado
    (o `10` é o único rank escrito com dois glifos)
 5. **Cor da tinta** elimina metade dos naipes: vermelho descarta ♠/♣, preto descarta ♥/♦
 6. **Template matching por IoU** contra 13 templates de rank e 4 de naipe
-7. **Limiar simultâneo** em rank e naipe — abaixo dele não vira carta
+7. **Limiar simultâneo** em rank e naipe - abaixo dele não vira carta
 
 Sem treino, sem GPU, sem dataset anotado. O banco de 17 templates saiu de uma sessão
 de captura de meia hora.
@@ -67,11 +56,11 @@ de captura de meia hora.
 
 Duas famílias de abordagem falharam antes desta funcionar.
 
-**Segmentar a carta inteira** — detecção de contorno, segmentação por cor e subtração de
+**Segmentar a carta inteira** - detecção de contorno, segmentação por cor e subtração de
 fundo. Todas quebram pelo mesmo motivo: durante o peek a mão cobre o topo da carta, então
 o contorno nunca fecha, e não existe threshold de cor que sobreviva a sombra projetada.
 
-**Modelos YOLO pré-treinados** — nenhum foi treinado no ângulo rasante do rail, e a
+**Modelos YOLO pré-treinados** - nenhum foi treinado no ângulo rasante do rail, e a
 degradação aparece tanto na localização quanto na classificação:
 
 | abordagem | índices localizados (de 6) | pior erro observado |
@@ -91,11 +80,11 @@ de dataset e treino não se justifica hoje.
 
 Três processos independentes, sem monolito:
 
-- **Serviço de visão** (Python + OpenCV) — emite observações: carta, confiança, assento,
+- **Serviço de visão** (Python + OpenCV) - emite observações: carta, confiança, assento,
   timestamp. Não decide nada.
-- **Motor de jogo** (Node + TypeScript) — máquina de estado do Hold'em, gate temporal,
+- **Motor de jogo** (Node + TypeScript) - máquina de estado do Hold'em, gate temporal,
   restrição de baralho, voto de frames, equity. É a fonte da verdade. *Fase 2.*
-- **Overlay** (Next.js) — página transparente consumida pelo OBS como Browser Source. *Fase 2.*
+- **Overlay** (Next.js) - página transparente consumida pelo OBS como Browser Source. *Fase 2.*
 
 Se o serviço de visão cair, console e overlay continuam de pé, o operador digita, e a
 transmissão não cai.
@@ -134,9 +123,9 @@ data/
 ```
 
 Documentação
-Visão geral — o problema, a abordagem, a arquitetura
-Plano e decisões — fases, edge cases, registro de decisões
-Protocolo de captura — como gravar material novo
+Visão geral - o problema, a abordagem, a arquitetura
+Plano e decisões - fases, edge cases, registro de decisões
+Protocolo de captura - como gravar material novo
 Escopo
 Dentro: Texas Hold'em No Limit, cash game, até 9 assentos.
 
