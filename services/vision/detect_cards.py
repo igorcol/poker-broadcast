@@ -17,15 +17,14 @@ import numpy as np
 MIN_AREA_RATIO = 0.01
 
 
-def find_card_contours(image: np.ndarray) -> list[np.ndarray]:
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    # Carta é papel branco — saturação baixa, brilho alto. A borda contra a mesa
-    # é fraca demais pro Canny, mas a região inteira se separa bem por cor
-    lower = np.array([0, 0, 150])
-    upper = np.array([180, 60, 255])
-    mask = cv2.inRange(hsv, lower, upper)
-
-    # Fecha buracos pequenos (miolo do naipe, faixa amarela) sem grudar blobs distintos
+def find_card_contours(image: np.ndarray, background: np.ndarray) -> list[np.ndarray]:
+    diff = cv2.absdiff(
+        cv2.cvtColor(image, cv2.COLOR_BGR2GRAY),
+        cv2.cvtColor(background, cv2.COLOR_BGR2GRAY),
+    )
+    # Otsu acha o corte ótimo pro histograma desse frame — não fica refém de um
+    # valor fixo de brilho, que a mesa acabou de provar que varia por cena
+    _, mask = cv2.threshold(diff, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((15, 15), np.uint8))
 
     contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -61,6 +60,7 @@ def parse_roi(value: str, width: int, height: int) -> tuple[int, int, int, int]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Anota contornos candidatos a carta em um frame.")
     parser.add_argument("frame", type=Path, help="caminho do frame PNG")
+    parser.add_argument("--background", type=Path, required=True, help="frame de referência sem mão nem carta levantada")
     parser.add_argument("--out", type=Path, default=Path("data/frames/annotated.png"))
     parser.add_argument(
         "--roi",
@@ -71,15 +71,23 @@ def main() -> int:
     args = parser.parse_args()
 
     image = cv2.imread(str(args.frame))
+    background = cv2.imread(str(args.background))
     if image is None:
         print(f"erro: não foi possível ler o frame: {args.frame}", file=sys.stderr)
+        return 1
+    if background is None:
+        print(f"erro: não foi possível ler o background: {args.background}", file=sys.stderr)
+        return 1
+    if image.shape != background.shape:
+        print("erro: frame e background têm dimensões diferentes", file=sys.stderr)
         return 1
 
     height, width = image.shape[:2]
     x0, y0, x1, y1 = parse_roi(args.roi, width, height)
     cropped = image[y0:y1, x0:x1]
+    cropped_background = background[y0:y1, x0:x1]
 
-    contours = find_card_contours(cropped)
+    contours = find_card_contours(cropped, cropped_background)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     cv2.imwrite(str(args.out), annotate(cropped, contours))
 
