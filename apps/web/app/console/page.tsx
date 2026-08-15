@@ -2,8 +2,10 @@
 
 import { useState } from "react"
 
-import { legalActions, totalPot } from "@poker-broadcast/core"
+import { pendingBoardCards, totalPot } from "@poker-broadcast/core"
 
+import { ActionBar } from "../../components/action-bar.tsx"
+import { CardInput } from "../../components/card-input.tsx"
 import { HandSetup } from "../../components/hand-setup.tsx"
 import { SeatList } from "../../components/seat-list.tsx"
 import { useEngine } from "../../lib/use-engine.ts"
@@ -37,14 +39,22 @@ export default function ConsolePage() {
           <section className="summary">
             <span>{state.phase}</span>
             <span>pote {totalPot(state)}</span>
-            <span>board {state.board.length > 0 ? state.board.join(" ") : "—"}</span>
+            <span className="summary__board">
+              board {state.board.length > 0 ? state.board.join(" ") : "—"}
+              {pendingBoardCards(state) > 0 && (
+                <CardInput
+                  expected={pendingBoardCards(state)}
+                  placeholder={`${pendingBoardCards(state)} carta(s)`}
+                  current={null}
+                  onSubmit={(cards) => send({ type: "deal-board", cards })}
+                />
+              )}
+            </span>
           </section>
 
-          <SeatList state={state} />
+          <SeatList state={state} send={send} />
 
-          <footer className="legal">
-            {legalActions(state).length > 0 ? legalActions(state).join(" · ") : "sem ação pendente"}
-          </footer>
+          <ActionBar state={state} send={send} />
         </>
       )}
 

@@ -95,3 +95,27 @@ button {
 button:hover { border-color: var(--acting); }
 button.primary { background: var(--acting); color: #1a1a1a; font-weight: 600; }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.seat { grid-template-columns: 3ch 12ch 8ch 6ch 14ch 8ch; }
+
+.card-input {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 2px 6px;
+  font: inherit;
+  width: 100%;
+}
+.card-input::placeholder { color: var(--muted); }
+.card-input--bad { border-color: #ff6b6b; }
+
+.summary__board { display: flex; align-items: center; gap: 8px; }
+.summary__board .card-input { width: 12ch; }
+
+.actions { display: flex; gap: 8px; margin-top: 16px; align-items: center; }
+.actions u { text-decoration: none; color: var(--acting); }
+.actions__raise { display: flex; gap: 4px; align-items: center; }
+.actions__raise input { width: 9ch; background: var(--bg); border: 1px solid var(--acting); color: var(--text); padding: 6px 8px; font: inherit; }
+.actions__undo { margin-left: auto; }
+
+.setup__blinds select { width: 14ch; }

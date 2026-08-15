@@ -1,12 +1,29 @@
-import type { GameState } from "@poker-broadcast/core"
+"use client"
+
+import type { Card, ClientMessage, GameState } from "@poker-broadcast/core"
+
+import { CardInput } from "./card-input.tsx"
 
 /**
  * Lista de assentos com stack, aposta da rodada, cartas e marcadores de botão e vez.
- * É a leitura principal do operador durante a mão. Precisa ser escaneável de relance.
- * Só desenha: quem decide quem age é o engine.
+ * Cada linha traz o campo de hole cards do próprio assento — o operador digita onde enxerga.
+ * Só desenha e emite intenção: quem valida carta repetida é o engine.
  */
 
-export function SeatList({ state }: { readonly state: GameState }) {
+export function SeatList({
+  state,
+  send,
+}: {
+  readonly state: GameState
+  readonly send: (message: ClientMessage) => void
+}) {
+  function setCards(seat: number, cards: readonly Card[]): void {
+    const [first, second] = cards
+    if (first !== undefined && second !== undefined) {
+      send({ type: "set-cards", seat, cards: [first, second] })
+    }
+  }
+
   return (
     <ul className="seats">
       {state.seats.map((seat, position) => (
@@ -21,7 +38,12 @@ export function SeatList({ state }: { readonly state: GameState }) {
           <span className="seat__name">{seat.name}</span>
           <span className="seat__stack">{seat.stack}</span>
           <span className="seat__bet">{seat.committed > 0 ? seat.committed : ""}</span>
-          <span className="seat__cards">{seat.cards?.join(" ") ?? "—"}</span>
+          <CardInput
+            expected={2}
+            placeholder="— —"
+            current={seat.cards}
+            onSubmit={(cards) => setCards(position, cards)}
+          />
           <span className="seat__status">{seat.status === "active" ? "" : seat.status}</span>
         </li>
       ))}
