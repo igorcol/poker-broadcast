@@ -1,4 +1,4 @@
-import { RANKS, SUITS, createDeck, isCard, parseCard, rankOf, rankValue, suitOf } from "./card.ts"
+import { RANKS, SUITS, createDeck, isCard, parseCard, rankOf, rankValue, suitOf } from "../card.ts"
 import { describe, it } from "node:test"
 import assert from "assert"
 
