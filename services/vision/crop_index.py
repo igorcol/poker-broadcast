@@ -16,6 +16,7 @@ def main() -> int:
     parser.add_argument("frame", type=Path)
     parser.add_argument("--box", type=str, required=True, help="cx,cy,w,h em pixels, como o Roboflow devolve")
     parser.add_argument("--scale", type=int, default=8, help="fator de ampliação")
+    parser.add_argument("--pad", type=float, default=1.0, help="fator de expansão da box")
     parser.add_argument("--out", type=Path, default=Path("data/frames/crop.png"))
     args = parser.parse_args()
 
@@ -25,8 +26,11 @@ def main() -> int:
         return 1
 
     cx, cy, w, h = (float(part) for part in args.box.split(","))
+    w, h = w * args.pad, h * args.pad
+    # Clampa nas bordas: box expandida perto da margem estoura o frame e devolve recorte vazio
     x0, y0 = max(0, int(cx - w / 2)), max(0, int(cy - h / 2))
-    crop = image[y0:int(cy + h / 2), x0:int(cx + w / 2)]
+    x1, y1 = min(image.shape[1], int(cx + w / 2)), min(image.shape[0], int(cy + h / 2))
+    crop = image[y0:y1, x0:x1]
 
     if crop.size == 0:
         print("erro: recorte vazio — confira as coordenadas da box", file=sys.stderr)
