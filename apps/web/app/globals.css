@@ -150,7 +150,12 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   position: relative;
   padding-left: 62px;
   min-height: 92px;
+  /* Transição suave: em transmissão, salto seco rouba a atenção do que importa */
+  transition: transform 180ms ease-out;
 }
+
+/* Quem está na vez avança — destaque por posição lê mais rápido que só por cor */
+.pl--acting { transform: translateX(24px); }
 
 /* Avatar transborda pra esquerda e fica na frente das barras — é o eixo visual do card */
 .pl__avatar {
