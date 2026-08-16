@@ -1,12 +1,13 @@
 "use client"
 
-import { totalPot } from "@poker-broadcast/core"
-
+import { BoardPanel } from "../../components/overlay/board-panel.tsx"
+import { PlayerCard } from "../../components/overlay/player-card.tsx"
 import { useEngine } from "../../lib/use-engine.ts"
 
 /**
  * Camada que o OBS compõe sobre o vídeo da mesa, servida em localhost com fundo transparente.
- * Nunca envia nada ao engine: leitura pura, o console é quem opera.
+ * Coluna de jogadores à esquerda, comunitárias e pote no canto inferior direito.
+ * Nunca envia nada ao engine: é leitura pura, o console é quem opera.
  */
 
 export default function OverlayPage() {
@@ -14,23 +15,22 @@ export default function OverlayPage() {
 
   return (
     <div className="overlay">
-      {state === null ? (
-        <p className="overlay__muted">sem mão</p>
-      ) : (
+      {state !== null && (
         <>
-          <p className="overlay__line">
-            {state.phase} · pote {totalPot(state)}
-          </p>
-          <p className="overlay__line">
-            board {state.board.length > 0 ? state.board.join(" ") : "—"}
-          </p>
-          {state.seats.map((seat, position) => (
-            <p key={seat.index} className="overlay__line">
-              {position === state.toAct ? "▸ " : "  "}
-              {seat.name} · {seat.stack} · {seat.cards?.join(" ") ?? "??"}
-              {seat.status !== "active" && ` · ${seat.status}`}
-            </p>
-          ))}
+          <div className="overlay__players">
+            {state.seats.map((seat, position) =>
+              seat.status === "folded" ? null : (
+                <PlayerCard
+                  key={seat.index}
+                  seat={seat}
+                  state={state}
+                  acting={position === state.toAct}
+                />
+              ),
+            )}
+          </div>
+
+          <BoardPanel state={state} />
         </>
       )}
 
