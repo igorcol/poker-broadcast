@@ -3,7 +3,7 @@ import type { GameState, Seat } from "@poker-broadcast/core"
 import { PlayingCard } from "./playing-card.tsx"
 
 /**
- * Card de um jogador na coluna do overlay: foto, stack, cartas, nome e ação corrente.
+ * Card de um jogador na coluna do overlay: avatar, stack, cartas, nome e ação corrente.
  * A linha de ação é derivada do estado — quanto falta pagar, ou o valor do all-in.
  * Assento foldado não chega aqui: quem saiu da mão some da tela.
  */
@@ -24,10 +24,12 @@ export function PlayerCard({
   seat,
   state,
   acting,
+  equity,
 }: {
   readonly seat: Seat
   readonly state: GameState
   readonly acting: boolean
+  readonly equity?: number
 }) {
   const action = actionLabel(seat, state)
   const [first, second] = seat.cards ?? [null, null]
@@ -40,12 +42,25 @@ export function PlayerCard({
       </div>
 
       <div className="pl__body">
-        <div className="pl__cards">
+        <div className="pl__top">
           <PlayingCard card={first} />
           <PlayingCard card={second} />
+          {equity !== undefined && (
+            <span className="pl__equity">
+              <span>{equity}%</span>
+            </span>
+          )}
         </div>
-        <div className="pl__name">{seat.name.toUpperCase()}</div>
-        {action !== null && <div className={`pl__action pl__action--${action.tone}`}>{action.text}</div>}
+
+        <div className="pl__name">
+          <span>{seat.name.toUpperCase()}</span>
+        </div>
+
+        {action !== null && (
+          <div className={`pl__action pl__action--${action.tone}`}>
+            <span>{action.text}</span>
+          </div>
+        )}
       </div>
     </div>
   )
