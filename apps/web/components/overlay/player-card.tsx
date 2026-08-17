@@ -67,15 +67,17 @@ export function PlayerCard({
             )}
           </div>
 
-          <div className="pl__name">
-            <span>{seat.name.toUpperCase()}</span>
-          </div>
-
-          {action !== null && (
-            <div key={action.text} className={`pl__action pl__action--${action.tone}`}>
-              <span>{action.text}</span>
+          <div className="pl__line">
+            <div className="pl__name">
+              <span>{seat.name.toUpperCase()}</span>
             </div>
-          )}
+
+            {action !== null && (
+              <div key={action.text} className={`pl__action pl__action--${action.tone}`}>
+                <span>{action.text}</span>
+              </div>
+            )}
+          </div>
 
           {hand !== null && (
             <div key={hand} className="pl__hand">

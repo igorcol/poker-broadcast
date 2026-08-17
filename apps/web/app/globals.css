@@ -218,8 +218,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 .pl__hand {
-  display: inline-block;
-  margin-top: 3px;
+  /* Bloco com largura do conteúdo: garante linha própria sem esticar a barra */
+  display: block;
+  width: fit-content;
+  margin-top: 4px;
   padding: 2px 16px 2px 12px;
   background: rgba(8, 14, 26, 0.8);
   border-left: 3px solid #7da3d9;
@@ -250,8 +252,9 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 .pl--acting .pl__name { box-shadow: inset 0 -3px 0 #ffcc4d; }
 
+.pl__line { display: flex; align-items: center; gap: 4px; }
+
 .pl__action {
-  margin-top: 3px;
   padding: 3px 20px 3px 14px;
   font-size: 18px;
   font-weight: 700;
