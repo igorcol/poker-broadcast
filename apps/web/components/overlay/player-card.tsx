@@ -1,4 +1,4 @@
-import type { GameState, Seat } from "@poker-broadcast/core"
+import { describeHand, evaluate, type Card, type GameState, type Seat } from "@poker-broadcast/core"
 
 import { PlayingCard } from "./playing-card.tsx"
 
@@ -7,6 +7,17 @@ import { PlayingCard } from "./playing-card.tsx"
  * A linha de ação é derivada do estado — quanto falta pagar, ou o valor do all-in.
  * Assento foldado não chega aqui: quem saiu da mão some da tela.
  */
+
+
+/** Menos de cinco cartas não formam mão — no preflop não há o que anunciar. */
+const MIN_CARDS = 5
+
+function handLabel(seat: Seat, board: readonly Card[]): string | null {
+  if (seat.cards === null) return null
+
+  const known = [...seat.cards, ...board]
+  return known.length < MIN_CARDS ? null : describeHand(evaluate(known))
+}
 
 function actionLabel(seat: Seat, state: GameState): { text: string; tone: string } | null {
   if (seat.status === "allin") return { text: `ALL IN ${seat.committed}`, tone: "allin" }
@@ -32,6 +43,7 @@ export function PlayerCard({
   readonly equity?: number
 }) {
   const action = actionLabel(seat, state)
+  const hand = handLabel(seat, state.board)
   const [first, second] = seat.cards ?? [null, null]
 
   return (
@@ -62,6 +74,12 @@ export function PlayerCard({
           {action !== null && (
             <div key={action.text} className={`pl__action pl__action--${action.tone}`}>
               <span>{action.text}</span>
+            </div>
+          )}
+
+          {hand !== null && (
+            <div key={hand} className="pl__hand">
+              <span>{hand}</span>
             </div>
           )}
         </div>

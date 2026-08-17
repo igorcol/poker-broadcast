@@ -158,3 +158,44 @@ export function evaluate(cards: readonly Card[]): HandValue {
 export function compare(a: HandValue, b: HandValue): number {
   return a.score - b.score
 }
+
+const RANK_SINGULAR: Record<number, string> = {
+  2: "DOIS", 3: "TRÊS", 4: "QUATRO", 5: "CINCO", 6: "SEIS", 7: "SETE", 8: "OITO",
+  9: "NOVE", 10: "DEZ", 11: "VALETE", 12: "DAMA", 13: "REI", 14: "ÁS",
+}
+
+const RANK_PLURAL: Record<number, string> = {
+  2: "DOIS", 3: "TRÊS", 4: "QUATRO", 5: "CINCO", 6: "SEIS", 7: "SETE", 8: "OITO",
+  9: "NOVE", 10: "DEZ", 11: "VALETES", 12: "DAMAS", 13: "REIS", 14: "ASES",
+}
+
+/** Lê um desempate de volta do score — só usado pra exibir, nunca no caminho quente. */
+function tiebreakerAt(score: number, position: number): number {
+  return (score >> (16 - position * 4)) & 0xf
+}
+
+export function describeHand(value: HandValue): string {
+  const first = tiebreakerAt(value.score, 0)
+  const second = tiebreakerAt(value.score, 1)
+
+  switch (value.category) {
+    case "straight-flush":
+      return first === 14 ? "ROYAL FLUSH" : `STRAIGHT FLUSH ATÉ ${RANK_SINGULAR[first]}`
+    case "quads":
+      return `QUADRA DE ${RANK_PLURAL[first]}`
+    case "full-house":
+      return `FULL HOUSE ${RANK_PLURAL[first]}`
+    case "flush":
+      return `FLUSH ${RANK_SINGULAR[first]} ALTO`
+    case "straight":
+      return `STRAIGHT ATÉ ${RANK_SINGULAR[first]}`
+    case "trips":
+      return `TRINCA DE ${RANK_PLURAL[first]}`
+    case "two-pair":
+      return `DOIS PARES ${RANK_PLURAL[first]} E ${RANK_PLURAL[second]}`
+    case "pair":
+      return `PAR DE ${RANK_PLURAL[first]}`
+    case "high-card":
+      return `${RANK_SINGULAR[first]} ALTO`
+  }
+}

@@ -217,6 +217,22 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   transform: skewX(12deg);
 }
 
+.pl__hand {
+  display: inline-block;
+  margin-top: 3px;
+  padding: 2px 16px 2px 12px;
+  background: rgba(8, 14, 26, 0.8);
+  border-left: 3px solid #7da3d9;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #c8d8f0;
+  transform: skewX(-12deg);
+  text-shadow: none;
+  animation: action-enter 180ms ease-out;
+}
+.pl__hand > span { display: inline-block; transform: skewX(12deg); }
+
 .pl__equity {
   padding: 3px 10px;
   margin-left: 2px;
