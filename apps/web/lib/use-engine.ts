@@ -16,6 +16,7 @@ const DEFAULT_URL = "ws://localhost:4000"
 
 export function useEngine(url: string = DEFAULT_URL) {
   const [state, setState] = useState<GameState | null>(null)
+  const [equity, setEquity] = useState<readonly (number | null)[]>([])
   const [error, setError] = useState<string | null>(null)
   const [connected, setConnected] = useState(false)
   const clientRef = useRef<EngineClient | null>(null)
@@ -26,6 +27,8 @@ export function useEngine(url: string = DEFAULT_URL) {
         if (message.type === "state") {
           setState(message.state)
           setError(null)
+        } else if (message.type === "equity") {
+          setEquity(message.values)
         } else {
           setError(message.error)
         }
@@ -39,5 +42,5 @@ export function useEngine(url: string = DEFAULT_URL) {
 
   const send = useCallback((message: ClientMessage) => clientRef.current?.send(message), [])
 
-  return { state, error, connected, send }
+  return { state, equity, error, connected, send }
 }

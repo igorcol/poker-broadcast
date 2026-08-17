@@ -18,3 +18,5 @@ export type ClientMessage =
 export type ServerMessage =
   | { readonly type: "state"; readonly state: GameState | null }
   | { readonly type: "error"; readonly error: string }
+  /** Indexado por posição de assento. `null` = sem número pra mostrar. */
+  | { readonly type: "equity"; readonly values: readonly (number | null)[] }

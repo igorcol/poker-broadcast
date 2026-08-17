@@ -62,7 +62,7 @@ export function PlayerCard({
             <PlayingCard key={`1-${second ?? "back"}`} card={second} />
             {equity !== undefined && (
               <span className="pl__equity">
-                <span>{equity}%</span>
+                <span>{Math.round(equity * 100)}%</span>
               </span>
             )}
           </div>

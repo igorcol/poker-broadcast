@@ -1,12 +1,14 @@
 import { env } from "node:process";
 
 import {
+  computeEquity,
   isCard,
   type Card,
   type CardObservation,
   type ClientMessage,
+  type GameState,
   type ServerMessage,
-} from "@poker-broadcast/core";
+} from "@poker-broadcast/core"
 import { WebSocketServer, type WebSocket } from "ws";
 
 import { ManualCardSource } from "./manual-source.ts";
@@ -121,14 +123,56 @@ function send(socket: WebSocket, message: ServerMessage): void {
   socket.send(JSON.stringify(message));
 }
 
-function broadcastState(): void {
-  const payload = JSON.stringify({
-    type: "state",
-    state: session.current,
-  } satisfies ServerMessage);
+function broadcast(message: ServerMessage): void {
+  const payload = JSON.stringify(message)
   for (const client of server.clients) {
-    if (client.readyState === client.OPEN) client.send(payload);
+    if (client.readyState === client.OPEN) client.send(payload)
   }
+}
+
+let equityKey = ""
+let equityValues: readonly (number | null)[] = []
+
+/**
+ * Assento vivo sem carta conhecida invalida o número de todos, não só o dele —
+ * Open Question 1 resolvida por omissão: melhor não mostrar que mostrar errado.
+ */
+function refreshEquity(state: GameState | null): void {
+  if (state === null || state.phase === "complete") {
+    equityKey = ""
+    equityValues = []
+    return
+  }
+
+  const live = state.seats
+    .map((seat, position) => ({ seat, position }))
+    .filter(({ seat }) => seat.status !== "folded")
+
+  const key = `${state.board.join()}|${live.map(({ seat }) => seat.cards?.join() ?? "?").join("/")}`
+  if (key === equityKey) return
+  equityKey = key
+
+  const hands = live.map(({ seat }) => seat.cards)
+  if (hands.some((cards) => cards === null)) {
+    equityValues = state.seats.map(() => null)
+    return
+  }
+
+  const started = performance.now()
+  const results = computeEquity(hands as readonly (readonly [Card, Card])[], state.board)
+  console.log(`equity de ${hands.length} mãos em ${(performance.now() - started).toFixed(0)}ms`)
+
+  const values: (number | null)[] = state.seats.map(() => null)
+  live.forEach(({ position }, index) => {
+    values[position] = results[index] ?? null
+  })
+  equityValues = values
+}
+
+function broadcastState(): void {
+  refreshEquity(session.current)
+  broadcast({ type: "state", state: session.current })
+  broadcast({ type: "equity", values: equityValues })
 }
 
 /** Caminho único de entrada de carta — vale pro teclado do operador e pra visão na Fase 3. */
@@ -152,7 +196,8 @@ cardSource.start((observation) => {
 });
 
 server.on("connection", (socket) => {
-  send(socket, { type: "state", state: session.current });
+  send(socket, { type: "state", state: session.current })
+  send(socket, { type: "equity", values: equityValues })
 
   socket.on("message", (raw) => {
     const message = parseMessage(raw.toString());

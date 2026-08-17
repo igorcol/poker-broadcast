@@ -29,6 +29,18 @@ const CATEGORY_RANK: Record<HandCategory, number> = {
   "straight-flush": 8,
 }
 
+const CATEGORY_BY_RANK: readonly HandCategory[] = [
+  "high-card",
+  "pair",
+  "two-pair",
+  "trips",
+  "straight",
+  "flush",
+  "full-house",
+  "quads",
+  "straight-flush",
+]
+
 export interface HandValue {
   readonly category: HandCategory
   /** Categoria e até 5 desempates num inteiro: maior é melhor, comparação é subtração. */
@@ -72,7 +84,8 @@ function topRanks(mask: number, count: number, skipA = 0, skipB = 0): number[] {
   return ranks
 }
 
-export function evaluate(cards: readonly Card[]): HandValue {
+/** Score puro, sem alocar objeto: a equity chama isso centenas de milhares de vezes por cálculo. */
+export function evaluateScore(cards: readonly Card[]): number {
   rankCounts.fill(0)
   suitMasks.fill(0)
   let rankMask = 0
@@ -99,7 +112,7 @@ export function evaluate(cards: readonly Card[]): HandValue {
 
   if (flushSuit >= 0) {
     const high = straightHigh(suitMasks[flushSuit] ?? 0)
-    if (high > 0) return { category: "straight-flush", score: encode("straight-flush", [high]) }
+    if (high > 0) return encode("straight-flush", [high])
   }
 
   let quad = 0
@@ -121,38 +134,40 @@ export function evaluate(cards: readonly Card[]): HandValue {
   }
 
   if (quad > 0) {
-    return { category: "quads", score: encode("quads", [quad, ...topRanks(rankMask, 1, quad)]) }
+    return encode("quads", [quad, ...topRanks(rankMask, 1, quad)])
   }
 
   // Duas trincas viram full house: a menor conta como par
   const fullPair = pair > 0 ? Math.max(pair, tripsLow) : tripsLow
   if (trips > 0 && fullPair > 0) {
-    return { category: "full-house", score: encode("full-house", [trips, fullPair]) }
+    return encode("full-house", [trips, fullPair])
   }
 
   if (flushSuit >= 0) {
-    return { category: "flush", score: encode("flush", topRanks(suitMasks[flushSuit] ?? 0, 5)) }
+    return encode("flush", topRanks(suitMasks[flushSuit] ?? 0, 5))
   }
 
   const high = straightHigh(rankMask)
-  if (high > 0) return { category: "straight", score: encode("straight", [high]) }
+  if (high > 0) return encode("straight", [high])
 
   if (trips > 0) {
-    return { category: "trips", score: encode("trips", [trips, ...topRanks(rankMask, 2, trips)]) }
+    return encode("trips", [trips, ...topRanks(rankMask, 2, trips)])
   }
 
   if (pair > 0 && pairLow > 0) {
-    return {
-      category: "two-pair",
-      score: encode("two-pair", [pair, pairLow, ...topRanks(rankMask, 1, pair, pairLow)]),
-    }
+    return encode("two-pair", [pair, pairLow, ...topRanks(rankMask, 1, pair, pairLow)])
   }
 
   if (pair > 0) {
-    return { category: "pair", score: encode("pair", [pair, ...topRanks(rankMask, 3, pair)]) }
+    return encode("pair", [pair, ...topRanks(rankMask, 3, pair)])
   }
 
-  return { category: "high-card", score: encode("high-card", topRanks(rankMask, 5)) }
+  return encode("high-card", topRanks(rankMask, 5))
+}
+
+export function evaluate(cards: readonly Card[]): HandValue {
+  const score = evaluateScore(cards)
+  return { category: CATEGORY_BY_RANK[score >> 20] ?? "high-card", score }
 }
 
 export function compare(a: HandValue, b: HandValue): number {

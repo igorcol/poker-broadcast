@@ -12,7 +12,7 @@ import { useEngine } from "../../lib/use-engine.ts"
  * Nunca envia nada ao engine: é leitura pura, o console é quem opera.
  */
 export default function OverlayPage() {
-  const { state, connected } = useEngine()
+  const { state, equity, connected } = useEngine()
   const [preview, setPreview] = useState(false)
   const [animated, setAnimated] = useState(false)
 
@@ -43,6 +43,7 @@ export default function OverlayPage() {
                   seat={seat}
                   state={state}
                   acting={position === state.toAct}
+                  equity={equity[position] ?? undefined}
                 />
               ),
             )}
