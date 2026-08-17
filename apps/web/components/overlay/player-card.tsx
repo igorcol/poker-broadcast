@@ -35,32 +35,36 @@ export function PlayerCard({
   const [first, second] = seat.cards ?? [null, null]
 
   return (
-    <div className={`pl${acting ? " pl--acting" : ""}`}>
-      <div className="pl__avatar">
-        <span className="pl__initial">{seat.name.charAt(0).toUpperCase()}</span>
-        <span className="pl__stack">{seat.stack}</span>
-      </div>
+    // O slot anima a entrada; o `.pl` guarda o transform do jogador da vez, senão um sobrescreve o outro
+    <div className="pl-slot">
+      <div className={`pl${acting ? " pl--acting" : ""}`}>
+        <div className="pl__avatar">
+          <span className="pl__initial">{seat.name.charAt(0).toUpperCase()}</span>
+          <span className="pl__stack">{seat.stack}</span>
+        </div>
 
-      <div className="pl__body">
-        <div className="pl__top">
-          <PlayingCard card={first} />
-          <PlayingCard card={second} />
-          {equity !== undefined && (
-            <span className="pl__equity">
-              <span>{equity}%</span>
-            </span>
+        <div className="pl__body">
+          <div className="pl__top">
+            {/* A key muda quando a carta é revelada. O que dispara o flip */}
+            <PlayingCard key={`0-${first ?? "back"}`} card={first} />
+            <PlayingCard key={`1-${second ?? "back"}`} card={second} />
+            {equity !== undefined && (
+              <span className="pl__equity">
+                <span>{equity}%</span>
+              </span>
+            )}
+          </div>
+
+          <div className="pl__name">
+            <span>{seat.name.toUpperCase()}</span>
+          </div>
+
+          {action !== null && (
+            <div key={action.text} className={`pl__action pl__action--${action.tone}`}>
+              <span>{action.text}</span>
+            </div>
           )}
         </div>
-
-        <div className="pl__name">
-          <span>{seat.name.toUpperCase()}</span>
-        </div>
-
-        {action !== null && (
-          <div className={`pl__action pl__action--${action.tone}`}>
-            <span>{action.text}</span>
-          </div>
-        )}
       </div>
     </div>
   )

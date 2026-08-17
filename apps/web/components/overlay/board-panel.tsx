@@ -14,9 +14,10 @@ export function BoardPanel({ state }: { readonly state: GameState }) {
   return (
     <div className="board">
       <div className="board__cards">
-        {Array.from({ length: BOARD_SLOTS }, (_, index) => (
-          <PlayingCard key={index} card={state.board[index] ?? null} size="large" />
-        ))}
+        {Array.from({ length: BOARD_SLOTS }, (_, index) => {
+          const card = state.board[index] ?? null
+          return <PlayingCard key={`${index}-${card ?? "back"}`} card={card} size="large" />
+        })}
       </div>
       <div className="board__pot">
         <span className="board__pot-label">POT</span>

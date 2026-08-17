@@ -17,7 +17,7 @@ export function PlayingCard({ card, size = "small" }: { readonly card: Card | nu
   const suit: Suit = suitOf(card)
 
   return (
-    <span className={`pcard pcard--${size} pcard--${suit}`}>
+    <span className={`pcard pcard--face pcard--${size} pcard--${suit}`}>
       <b className="pcard__rank">{rank === "T" ? "10" : rank}</b>
       <b className="pcard__suit">{SUIT_SYMBOLS[suit]}</b>
     </span>

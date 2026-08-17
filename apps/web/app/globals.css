@@ -156,6 +156,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* Quem está na vez avança — destaque por posição lê mais rápido que só por cor */
 .pl--acting { transform: translateX(40px); }
+.pl--acting .pl__avatar { box-shadow: 0 0 14px rgba(255, 204, 77, 0.45); }
 
 /* Avatar transborda pra esquerda e fica na frente das barras — é o eixo visual do card */
 .pl__avatar {
@@ -198,7 +199,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .pl__body { padding-left: 44px; }
 
-.pl__top { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; }
+/* Sem perspective o rotateY achata e o flip vira um squash lateral */
+.pl__top { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; perspective: 600px; }
 
 /* Barras chanfradas: o skew vai no bloco e volta no texto, senão a letra entorta junto */
 .pl__equity,
@@ -238,8 +240,12 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   font-size: 18px;
   font-weight: 700;
   letter-spacing: 0.04em;
+  animation: action-enter 180ms ease-out;
 }
-.pl__action--allin { background: #b81d24; }
+.pl__action--allin {
+  background: #b81d24;
+  animation: action-enter 180ms ease-out, allin-pulse 320ms ease-out 180ms;
+}
 .pl__action--call { background: #1c5fc9; }
 .pl__action--bet { background: rgba(255, 255, 255, 0.18); }
 
@@ -254,6 +260,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   text-shadow: none;
   line-height: 1;
 }
+/* backwards: durante o delay da cascata a carta fica virada, em vez de aparecer e depois girar */
+.pcard--face { animation: card-flip 280ms ease-out backwards; }
 .pcard--small { width: 54px; height: 44px; font-size: 26px; }
 .pcard--large { width: 76px; height: 62px; font-size: 36px; }
 .pcard--back {
@@ -268,7 +276,11 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .pcard--c { color: #12805c; }
 
 .board { position: absolute; right: 28px; bottom: 28px; }
-.board__cards { display: flex; gap: 6px; margin-bottom: 5px; }
+.board__cards { display: flex; gap: 6px; margin-bottom: 5px; perspective: 900px; }
+
+/* Cascata só no flop: turn e river chegam sozinhos e não esperam ninguém */
+.board__cards .pcard--face:nth-child(2) { animation-delay: 90ms; }
+.board__cards .pcard--face:nth-child(3) { animation-delay: 180ms; }
 .board__pot {
   display: flex;
   align-items: baseline;
@@ -298,3 +310,33 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .overlay--preview {
   background: url("/bg-template.jpg") center / cover no-repeat;
 }
+
+/* Estado chegando de uma vez após reconectar não deve animar nada */
+.overlay--instant *,
+.overlay--instant *::before,
+.overlay--instant *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+@keyframes card-flip {
+  from { transform: rotateY(-90deg); }
+  to { transform: rotateY(0); }
+}
+
+@keyframes player-enter {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes action-enter {
+  from { opacity: 0; transform: skewX(-12deg) translateX(-14px); }
+  to { opacity: 1; transform: skewX(-12deg) translateX(0); }
+}
+
+@keyframes allin-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.6); }
+}
+
+.pl-slot { animation: player-enter 220ms ease-out; }

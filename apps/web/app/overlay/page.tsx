@@ -14,14 +14,25 @@ import { useEngine } from "../../lib/use-engine.ts"
 export default function OverlayPage() {
   const { state, connected } = useEngine()
   const [preview, setPreview] = useState(false)
+  const [animated, setAnimated] = useState(false)
 
   // Fundo de teste só com `?preview`: a URL que o OBS usa precisa continuar transparente
   useEffect(() => {
     setPreview(new URLSearchParams(window.location.search).has("preview"))
   }, [])
 
+  // Reconexão traz o estado inteiro de uma vez: sem essa trava, tudo animaria junto
+  useEffect(() => {
+    if (!connected) {
+      setAnimated(false)
+      return
+    }
+    const timer = setTimeout(() => setAnimated(true), 60)
+    return () => clearTimeout(timer)
+  }, [connected])
+
   return (
-    <div className={`overlay${preview ? " overlay--preview" : ""}`}>
+    <div className={`overlay${preview ? " overlay--preview" : ""}${animated ? "" : " overlay--instant"}`}>
       {state !== null && (
         <>
           <div className="overlay__players">
